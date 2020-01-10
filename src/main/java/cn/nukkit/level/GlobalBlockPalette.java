@@ -57,9 +57,9 @@ public class GlobalBlockPalette {
                 //noinspection unchecked
                 tag = (ListTag<CompoundTag>) NBTIO.readNetwork(buffered);
             }
-            
+
         } catch (IOException e) {
-            throw new AssertionError(e);
+            throw new AssertionError("Unable to load block palette", e);
         }
 
         for (CompoundTag state : tag.getAll()) {
