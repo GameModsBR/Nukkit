@@ -72,11 +72,11 @@ public class BlockPrismarine extends BlockSolidMeta {
         switch (type) {
             case NORMAL:
                 return BlockColor.CYAN_BLOCK_COLOR;
-            default:
             case DARK:
             case BRICKS:
                 return BlockColor.DIAMOND_BLOCK_COLOR;
-
+            default:
+                return BlockColor.STONE_BLOCK_COLOR;
         }
     }
 }

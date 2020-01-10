@@ -144,17 +144,18 @@ public class ItemBucket extends Item {
                 placementBlock = block;
             }
 
-            PlayerBucketEmptyEvent ev;
-            player.getServer().getPluginManager().callEvent(ev = new PlayerBucketEmptyEvent(player, placementBlock, face, target, this, result));
+            PlayerBucketEmptyEvent ev = new PlayerBucketEmptyEvent(player, placementBlock, face, target, this, result);
             if (usesWaterlogging) {
                 ev.setCancelled(placementBlock.getWaterloggingLevel() <= 0 && !placementBlock.canBeFlowedInto());
             } else {
                 ev.setCancelled(!placementBlock.canBeFlowedInto());
             }
 
-            if (player.getLevel().getName().equals("nether") && this.getDamage() != 10) {
+            if (player.getLevel().getDimension() == Level.DIMENSION_NETHER && this.getDamage() != 10) {
                 ev.setCancelled(true);
             }
+
+            player.getServer().getPluginManager().callEvent(ev);
 
             if (!ev.isCancelled()) {
                 player.getLevel().setBlock(placementBlock, placementBlock.layer, targetBlock, true, true);
@@ -173,7 +174,7 @@ public class ItemBucket extends Item {
 
                 return true;
             } else {
-                player.getLevel().sendBlocks(new Player[] {player}, new Block[] {block.getLevelBlockAtLayer(1)}, UpdateBlockPacket.FLAG_ALL_PRIORITY, 1);
+                player.getLevel().sendBlocks(new Player[]{player}, new Block[]{Block.get(Block.AIR, 0, block)}, UpdateBlockPacket.FLAG_ALL_PRIORITY, 1);
                 player.getInventory().sendContents(player);
             }
         }
