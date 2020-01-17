@@ -849,6 +849,7 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
         this.sendData(this);
         this.inventory.sendContents(this);
         this.inventory.sendArmorContents(this);
+        this.offhandInventory.sendContents(this);
 
         SetTimePacket setTimePacket = new SetTimePacket();
         setTimePacket.time = this.level.getTime();
@@ -1294,6 +1295,8 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
         this.inventory.sendContents(this);
         this.inventory.sendContents(this.getViewers().values());
         this.inventory.sendHeldItem(this.hasSpawned.values());
+        this.offhandInventory.sendContents(this);
+        this.offhandInventory.sendContents(this.getViewers().values());
 
         this.inventory.sendCreativeContents();
         return true;
@@ -1322,7 +1325,7 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
 
     @Override
     public Item[] getDrops() {
-        if (!this.isCreative()) {
+        if (!this.isCreative() && !this.isSpectator()) {
             return super.getDrops();
         }
 
@@ -2396,15 +2399,24 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
 
                     MobEquipmentPacket mobEquipmentPacket = (MobEquipmentPacket) packet;
 
-                    Item item = this.inventory.getItem(mobEquipmentPacket.hotbarSlot);
+                    Inventory inv = this.getWindowById(mobEquipmentPacket.windowId);
 
-                    if (!item.equals(mobEquipmentPacket.item)) {
-                        this.server.getLogger().debug("Tried to equip " + mobEquipmentPacket.item + " but have " + item + " in target slot");
-                        this.inventory.sendContents(this);
+                    if (inv == null) {
+                        this.server.getLogger().debug("Player " + this.getName() + " has no open container with window ID " + mobEquipmentPacket.windowId);
                         return;
                     }
 
-                    this.inventory.equipItem(mobEquipmentPacket.hotbarSlot);
+                    Item item = inv.getItem(mobEquipmentPacket.hotbarSlot);
+
+                    if (!item.equals(mobEquipmentPacket.item)) {
+                        this.server.getLogger().debug("Tried to equip " + mobEquipmentPacket.item + " but have " + item + " in target slot");
+                        inv.sendContents(this);
+                        return;
+                    }
+
+                    if (inv instanceof PlayerInventory) {
+                        ((PlayerInventory) inv).equipItem(mobEquipmentPacket.hotbarSlot);
+                    }
 
                     this.setDataFlag(Player.DATA_FLAGS, Player.DATA_FLAG_ACTION, false);
 
@@ -2540,6 +2552,7 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                             this.getAdventureSettings().update();
                             this.inventory.sendContents(this);
                             this.inventory.sendArmorContents(this);
+                            this.offhandInventory.sendContents(this);
 
                             this.spawnToAll();
                             this.scheduleUpdate();
@@ -3954,6 +3967,9 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
             if (this.inventory != null) {
                 this.inventory.clearAll();
             }
+            if (this.offhandInventory != null) {
+                this.offhandInventory.clearAll();
+            }
         }
 
         if (!ev.getKeepExperience() && this.level.getGameRules().getBoolean(GameRule.DO_ENTITY_DROPS)) {
@@ -4572,6 +4588,7 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
 
         this.playerUIInventory = new PlayerUIInventory(this);
         this.addWindow(this.playerUIInventory, ContainerIds.UI, true);
+        this.addWindow(this.offhandInventory, ContainerIds.OFFHAND, true);
 
         this.craftingGrid = this.playerUIInventory.getCraftingGrid();
         this.addWindow(this.craftingGrid, ContainerIds.NONE);
@@ -4805,7 +4822,7 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
         pk.port = port;
         this.dataPacket(pk);
         String message = "Transferred to " + hostName + ":" + port;
-        this.close(message, message, false);
+        this.close("", message, false);
     }
 
     public LoginChainData getLoginChainData() {
@@ -4818,13 +4835,19 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
         }
 
         if (near) {
+            Inventory inventory = this.inventory;
             if (entity instanceof EntityArrow && ((EntityArrow) entity).hadCollision) {
                 ItemArrow item = new ItemArrow();
-                if (this.isSurvival() && !this.inventory.canAddItem(item)) {
-                    return false;
+                if (this.isSurvival()) {
+                    // Should only collect to the offhand slot if the item matches what is already there
+                    if (this.offhandInventory.getItem(0).getId() == item.getId() && this.offhandInventory.canAddItem(item)) {
+                        inventory = this.offhandInventory;
+                    } else if (!inventory.canAddItem(item)) {
+                        return false;
+                    }
                 }
 
-                InventoryPickupArrowEvent ev = new InventoryPickupArrowEvent(this.inventory, (EntityArrow) entity);
+                InventoryPickupArrowEvent ev = new InventoryPickupArrowEvent(inventory, (EntityArrow) entity);
 
                 int pickupMode = ((EntityArrow) entity).getPickupMode();
                 if (pickupMode == EntityArrow.PICKUP_NONE || pickupMode == EntityArrow.PICKUP_CREATIVE && !this.isCreative()) {
@@ -4843,13 +4866,13 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                 this.dataPacket(pk);
 
                 if (!this.isCreative()) {
-                    this.inventory.addItem(item.clone());
+                    inventory.addItem(item.clone());
                 }
                 entity.close();
                 return true;
             } else if (entity instanceof EntityThrownTrident && ((EntityThrownTrident) entity).hadCollision) {
                 Item item = ((EntityThrownTrident) entity).getItem();
-                if (this.isSurvival() && !this.inventory.canAddItem(item)) {
+                if (this.isSurvival() && !inventory.canAddItem(item)) {
                     return false;
                 }
 
@@ -4860,7 +4883,7 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                 this.dataPacket(pk);
 
                 if (!this.isCreative()) {
-                    this.inventory.addItem(item.clone());
+                    inventory.addItem(item.clone());
                 }
                 entity.close();
                 return true;
@@ -4869,12 +4892,12 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                     Item item = ((EntityItem) entity).getItem();
 
                     if (item != null) {
-                        if (this.isSurvival() && !this.inventory.canAddItem(item)) {
+                        if (this.isSurvival() && !inventory.canAddItem(item)) {
                             return false;
                         }
 
                         InventoryPickupItemEvent ev;
-                        this.server.getPluginManager().callEvent(ev = new InventoryPickupItemEvent(this.inventory, (EntityItem) entity));
+                        this.server.getPluginManager().callEvent(ev = new InventoryPickupItemEvent(inventory, (EntityItem) entity));
                         if (ev.isCancelled()) {
                             return false;
                         }
@@ -4896,7 +4919,7 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                         this.dataPacket(pk);
 
                         entity.close();
-                        this.inventory.addItem(item.clone());
+                        inventory.addItem(item.clone());
                         return true;
                     }
                 }
