@@ -124,7 +124,7 @@ public class BlockLeaves extends BlockTransparentMeta {
             LeavesDecayEvent ev = new LeavesDecayEvent(this);
 
             Server.getInstance().getPluginManager().callEvent(ev);
-            if (ev.isCancelled() || findLog(this, new LongArraySet(), 0, check)) {
+            if (ev.isCancelled() || findLog(this, new LongArraySet(), 7, check)) {
                 getLevel().setBlock(this, this, false, false);
             } else {
                 getLevel().useBreakOn(this);
@@ -143,7 +143,7 @@ public class BlockLeaves extends BlockTransparentMeta {
         long index = Hash.hashBlock((int) pos.x, (int) pos.y, (int) pos.z);
         if (visited.contains(index)) return false;
         if (pos.getId() == WOOD || pos.getId() == WOOD2) return true;
-        if ((pos.getId() == LEAVES || pos.getId() == LEAVES2) && distance <= 4) {
+        if ((pos.getId() == LEAVES || pos.getId() == LEAVES2) && distance <= 7) {
             visited.add(index);
             int down = pos.down().getId();
             if (down == WOOD || down == WOOD2) {
@@ -152,8 +152,10 @@ public class BlockLeaves extends BlockTransparentMeta {
             if (fromSide == null) {
                 //North, East, South, West
                 for (int side = 2; side <= 5; ++side) {
-                    if (this.findLog(pos.getSide(BlockFace.fromIndex(side)), visited, distance + 1, check, BlockFace.fromIndex(side)))
-                        return true;
+                    for (int i = 0; i <= distance; i++) {
+                        if (this.findLog(pos.getSide(BlockFace.fromIndex(side)), visited, distance + 1, check, BlockFace.fromIndex(side)))
+                            return true;
+                    }
                 }
             } else { //No more loops
                 switch (fromSide) {
