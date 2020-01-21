@@ -153,7 +153,7 @@ public class BlockLeaves extends BlockTransparentMeta {
                 //North, East, South, West
                 for (int side = 2; side <= 5; ++side) {
                     for (int i = 0; i <= distance; i++) {
-                        if (this.findLog(pos.getSide(BlockFace.fromIndex(side)), visited, distance + 1, check, BlockFace.fromIndex(side)))
+                        if (this.findLog(pos.getSide(BlockFace.fromIndex(side)), visited, i + 1, check, BlockFace.fromIndex(side)))
                             return true;
                     }
                 }
