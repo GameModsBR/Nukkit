@@ -424,11 +424,12 @@ public class Server {
             this.setPropertyInt("difficulty", 3);
         }
 
-        Nukkit.DEBUG = Math.max(this.getConfig("debug.level", 1), 1);
+        Nukkit.DEBUG = NukkitMath.clamp(this.getConfig("debug.level", 1), 1, 3);
 
         int logLevel = (Nukkit.DEBUG + 3) * 100;
+        org.apache.logging.log4j.Level currentLevel = Nukkit.getLogLevel();
         for (org.apache.logging.log4j.Level level : org.apache.logging.log4j.Level.values()) {
-            if (level.intLevel() == logLevel) {
+            if (level.intLevel() == logLevel && level.intLevel() > currentLevel.intLevel()) {
                 Nukkit.setLogLevel(level);
                 break;
             }
@@ -445,7 +446,7 @@ public class Server {
         this.network.setName(this.getMotd());
         this.network.setSubName(this.getSubMotd());
 
-        log.info(this.getLanguage().translateString("nukkit.server.info", this.getName(), TextFormat.YELLOW + this.getNukkitVersion() + TextFormat.WHITE, TextFormat.AQUA + this.getCodename() + TextFormat.WHITE, this.getApiVersion()));
+        log.info(this.getLanguage().translateString("nukkit.server.info", this.getName(), TextFormat.YELLOW + this.getNukkitVersion() + " (" + this.getGitCommit() + ")" + TextFormat.WHITE, TextFormat.AQUA + this.getCodename() + TextFormat.WHITE, this.getApiVersion()));
         log.info(this.getLanguage().translateString("nukkit.server.license", this.getName()));
 
         this.consoleSender = new ConsoleCommandSender();
@@ -1246,6 +1247,7 @@ public class Server {
         String usage = Math.round(used / max * 100) + "%";
         String title = (char) 0x1b + "]0;" + this.getName() + " "
                 + this.getNukkitVersion()
+                + " | " + this.getGitCommit()
                 + " | Online " + this.players.size() + "/" + this.getMaxPlayers()
                 + " | Memory " + usage;
         if (!Nukkit.shortTitle) {
@@ -1272,6 +1274,10 @@ public class Server {
 
     public String getNukkitVersion() {
         return Nukkit.VERSION;
+    }
+    
+    public String getGitCommit() {
+        return Nukkit.GIT_COMMIT;
     }
 
     public String getCodename() {
@@ -1643,7 +1649,9 @@ public class Server {
         }
         CompoundTag nbt = null;
         if (create) {
-            log.info(this.getLanguage().translateString("nukkit.data.playerNotFound", name));
+            if (this.shouldSavePlayerData()) {
+                log.info(this.getLanguage().translateString("nukkit.data.playerNotFound", name));
+            }
             Position spawn = this.getDefaultLevel().getSafeSpawn();
             nbt = new CompoundTag()
                     .putLong("firstPlayed", System.currentTimeMillis() / 1000)

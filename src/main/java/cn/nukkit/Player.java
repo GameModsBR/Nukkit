@@ -112,8 +112,9 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
     public static final int CRAFTING_ANVIL = 2;
     public static final int CRAFTING_ENCHANT = 3;
     public static final int CRAFTING_BEACON = 4;
-    public static final int CRAFTING_GRINDSTONE = 5; //TODO Should it really be 5?
-    public static final int CRAFTING_STONECUTTER = 6; //TODO Should it really be 6?
+    public static final int CRAFTING_GRINDSTONE = 5; 
+    public static final int CRAFTING_STONECUTTER = 6;
+    public static final int CRAFTING_CARTOGRAPHY = 7;
 
     public static final float DEFAULT_SPEED = 0.1f;
     public static final float MAXIMUM_SPEED = 0.5f;
@@ -252,6 +253,8 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
 
     protected double lastRightClickTime = 0.0;
     protected Vector3 lastRightClickPos = null;
+    
+    protected int lastPlayerdLevelUpSoundTime = 0; 
 
     public int getStartActionTick() {
         return startAction;
@@ -1785,6 +1788,8 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
             this.dummyBossBars.values().forEach(DummyBossBar::updateBossEntityPosition);
         }
 
+        this.setDataFlag(DATA_FLAGS_EXTENDED, DATA_FLAG_BLOCKING, this.isSneaking() && (this.getInventory().getItemInHand().getId() == Item.SHIELD || this.getOffhandInventory().getItem(0).getId() == Item.SHIELD));
+
         return true;
     }
 
@@ -1983,10 +1988,11 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
         if ((level = this.server.getLevelByName(nbt.getString("Level"))) == null || !alive) {
             this.setLevel(this.server.getDefaultLevel());
             nbt.putString("Level", this.level.getName());
+            Position spawnLocation = this.level.getSafeSpawn();
             nbt.getList("Pos", DoubleTag.class)
-                    .add(new DoubleTag("0", this.level.getSpawnLocation().x))
-                    .add(new DoubleTag("1", this.level.getSpawnLocation().y))
-                    .add(new DoubleTag("2", this.level.getSpawnLocation().z));
+                    .add(new DoubleTag("0", spawnLocation.x))
+                    .add(new DoubleTag("1", spawnLocation.y))
+                    .add(new DoubleTag("2", spawnLocation.z));
         } else {
             this.setLevel(level);
         }
@@ -2680,11 +2686,14 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                     if (!this.spawned || !this.isAlive()) {
                         break;
                     }
-
-                    this.craftingType = CRAFTING_SMALL;
-                    //this.resetCraftingGridType();
-
+    
                     InteractPacket interactPacket = (InteractPacket) packet;
+                    
+                    if (interactPacket.action != InteractPacket.ACTION_MOUSEOVER || interactPacket.target != 0) {
+                        this.craftingType = CRAFTING_SMALL;
+                        //this.resetCraftingGridType();
+                    }
+
 
                     Entity targetEntity = this.level.getEntity(interactPacket.target);
 
@@ -2832,14 +2841,6 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                     EntityEventPacket entityEventPacket = (EntityEventPacket) packet;
 
                     switch (entityEventPacket.event) {
-                        case EntityEventPacket.ENCHANT:
-                            if (entityEventPacket.eid != this.id) {
-                                break;
-                            }
-
-                            setExperience(getExperience(), getExperienceLevel() + entityEventPacket.data);
-
-                            break;
                         case EntityEventPacket.EATING_ITEM:
                             if (entityEventPacket.data == 0 || entityEventPacket.eid != this.id) {
                                 break;
@@ -3051,6 +3052,15 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                         if (craftingType == CRAFTING_STONECUTTER && craftingTransaction != null
                                 && networkInventoryAction.sourceType == NetworkInventoryAction.SOURCE_TODO) {
                             networkInventoryAction.windowId = NetworkInventoryAction.SOURCE_TYPE_CRAFTING_RESULT;
+                        } else if (craftingType == CRAFTING_CARTOGRAPHY && craftingTransaction != null 
+                                && transactionPacket.actions.length == 2 && transactionPacket.actions[1].windowId == ContainerIds.UI
+                                && networkInventoryAction.inventorySlot == 0) {
+                            int slot = transactionPacket.actions[1].inventorySlot;
+                            if (slot == 50) {
+                                networkInventoryAction.windowId = NetworkInventoryAction.SOURCE_TYPE_CRAFTING_RESULT;
+                            } else {
+                                networkInventoryAction.inventorySlot = slot - 12;
+                            }
                         }
                         InventoryAction a = networkInventoryAction.createInventoryAction(this);
 
@@ -3075,11 +3085,26 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                         if (this.craftingTransaction.getPrimaryOutput() != null) {
                             //we get the actions for this in several packets, so we can't execute it until we get the result
 
-                            if (this.craftingTransaction.execute() && craftingType == CRAFTING_STONECUTTER) {
-                                Collection<Player> players = level.getChunkPlayers(getChunkX(), getChunkZ()).values();
-                                players.remove(this);
-                                if (!players.isEmpty()) {
-                                    level.addSound(this, Sound.BLOCK_STONECUTTER_USE, 1f, 1f, players);
+                            if (this.craftingTransaction.execute()) {
+                                Sound sound = null;
+                                switch (craftingType) {
+                                    case CRAFTING_STONECUTTER:
+                                        sound = Sound.BLOCK_STONECUTTER_USE;
+                                        break;
+                                    case CRAFTING_GRINDSTONE:
+                                        sound = Sound.BLOCK_GRINDSTONE_USE;
+                                        break;
+                                    case CRAFTING_CARTOGRAPHY:
+                                        sound = Sound.BLOCK_CARTOGRAPHY_TABLE_USE;
+                                        break;
+                                }
+                                
+                                if (sound != null) {
+                                    Collection<Player> players = level.getChunkPlayers(getChunkX(), getChunkZ()).values();
+                                    players.remove(this);
+                                    if (!players.isEmpty()) {
+                                        level.addSound(this, sound, 1f, 1f, players);
+                                    }
                                 }
                             }
                             this.craftingTransaction = null;
@@ -4041,8 +4066,12 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
     public int getExperienceLevel() {
         return this.expLevel;
     }
-
+    
     public void addExperience(int add) {
+        addExperience(add, false);
+    }
+    
+    public void addExperience(int add, boolean playLevelUpSound) {
         if (add == 0) return;
         int now = this.getExperience();
         int added = now + add;
@@ -4053,7 +4082,7 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
             level++;
             most = calculateRequireExperience(level);
         }
-        this.setExperience(added, level);
+        this.setExperience(added, level, playLevelUpSound);
     }
 
     public static int calculateRequireExperience(int level) {
@@ -4069,15 +4098,24 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
     public void setExperience(int exp) {
         setExperience(exp, this.getExperienceLevel());
     }
+    
+    public void setExperience(int exp, int level) {
+        setExperience(exp, level, false);
+    }
 
     //todo something on performance, lots of exp orbs then lots of packets, could crash client
-
-    public void setExperience(int exp, int level) {
+    
+    public void setExperience(int exp, int level, boolean playLevelUpSound) {
+        int levelBefore = this.expLevel;
         this.exp = exp;
         this.expLevel = level;
 
         this.sendExperienceLevel(level);
         this.sendExperience(exp);
+        if (playLevelUpSound && levelBefore / 5 != level / 5 && this.lastPlayerdLevelUpSoundTime < this.age - 100) {
+            this.lastPlayerdLevelUpSoundTime = this.age;
+            this.level.addSound(this, Sound.RANDOM_LEVELUP, 1F, 1F, this);
+        }
     }
 
     public void sendExperience() {
@@ -4932,7 +4970,7 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
             if (xpOrb.getPickupDelay() <= 0) {
                 int exp = xpOrb.getExp();
                 entity.kill();
-                this.getLevel().addSound(this, Sound.RANDOM_ORB);
+                this.getLevel().addLevelEvent(LevelEventPacket.EVENT_SOUND_EXPERIENCE_ORB, 0, this);
                 pickedXPOrb = tick;
 
                 //Mending
@@ -4961,7 +4999,7 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                     }
                 }
 
-                this.addExperience(exp);
+                this.addExperience(exp, true);
                 return true;
             }
         }

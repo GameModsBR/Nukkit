@@ -7,6 +7,7 @@ import lombok.ToString;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * @author Nukkit Project Team
@@ -39,6 +40,10 @@ public class CraftingDataPacket extends DataPacket {
 
     public void addShapedRecipe(ShapedRecipe... recipe) {
         Collections.addAll(entries, recipe);
+    }
+    
+    public void addCartographyRecipe(CartographyRecipe... recipe) {
+        Stream.of(recipe).filter(r -> r.getRecipeId() != null).forEachOrdered(r -> entries.add(r));
     }
 
     public void addFurnaceRecipe(FurnaceRecipe... recipe) {
@@ -96,6 +101,7 @@ public class CraftingDataPacket extends DataPacket {
                     this.putVarInt(stonecutter.getPriority());
                     break;
                 case SHAPELESS:
+                case CARTOGRAPHY:
                     ShapelessRecipe shapeless = (ShapelessRecipe) recipe;
                     this.putString(shapeless.getRecipeId());
                     List<Item> ingredients = shapeless.getIngredientList();
@@ -106,7 +112,7 @@ public class CraftingDataPacket extends DataPacket {
                     this.putUnsignedVarInt(1);
                     this.putSlot(shapeless.getResult());
                     this.putUUID(shapeless.getId());
-                    this.putString(CRAFTING_TAG_CRAFTING_TABLE);
+                    this.putString(recipe.getType() == RecipeType.CARTOGRAPHY ? CRAFTING_TAG_CARTOGRAPHY_TABLE : CRAFTING_TAG_CRAFTING_TABLE);
                     this.putVarInt(shapeless.getPriority());
                     break;
                 case SHAPED:
