@@ -102,11 +102,6 @@ public abstract class Entity extends Location implements Metadatable {
     public static final int DATA_LEAD_HOLDER_EID = 37; //long
     public static final int DATA_SCALE = 38; //float
     public static final int DATA_HAS_NPC_COMPONENT = 39; //byte
-    /**
-     * @deprecated Wrong mapping from NukkitX
-     */
-    @Deprecated
-    public static final int DATA_INTERACTIVE_TAG = 39; //string (button text) -- NukkitX Compatibility
     public static final int DATA_NPC_SKIN_ID = 40; //string
     public static final int DATA_URL_TAG = 41; //string
     public static final int DATA_MAX_AIR = 42; //short
@@ -162,7 +157,6 @@ public abstract class Entity extends Location implements Metadatable {
     public static final int DATA_SITTING_AMOUNT_PREVIOUS = 89;
     public static final int DATA_EATING_COUNTER = 90;
     public static final int DATA_EAT_COUNTER = 90; // Backward Compatibility
-    public static final int DATA_EATING_COUNTER = 90;
     public static final int DATA_FLAGS_EXTENDED = 91;
     public static final int DATA_LAYING_AMOUNT = 92;
     public static final int DATA_LAYING_AMOUNT_PREVIOUS = 93;

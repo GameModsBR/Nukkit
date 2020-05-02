@@ -2,9 +2,7 @@ package cn.nukkit.level;
 
 import cn.nukkit.Player;
 import cn.nukkit.Server;
-import cn.nukkit.block.Block;
-import cn.nukkit.block.BlockID;
-import cn.nukkit.block.BlockRedstoneDiode;
+import cn.nukkit.block.*;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.item.EntityItem;
@@ -2072,7 +2070,7 @@ public class Level implements ChunkManager, Metadatable {
                 
                 // TODO This was absent on c43d4252, should we remove from PowerNukkit too?
                 // I commented removed just in case
-                /*
+                    /*
                 if (!ev.getInstaBreak() && ev.isFastBreak()) {
                     return null;
                 }
