@@ -2871,19 +2871,17 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                             this.dataPacket(entityEventPacket);
                             Server.broadcastPacket(this.getViewers().values(), entityEventPacket);
                             break;
-<<<<<<< HEAD
+
                         case EntityEventPacket.ENCHANT:
                             // TODO IMHO This packet should be ignored and make the server calculate the cost by itself
                             // TODO Keeping the enchanting table work but this should be revisited later. PowerNukkit#232
-                            if (entityEventPacket.eid != this.id || craftingType == CRAFTING_ANVIL) {
+                            if (craftingType == CRAFTING_ANVIL) {
                                 break;
                             }
 
                             int levels = entityEventPacket.data; // Sent as negative number of levels lost
                             if (levels < 0) this.setExperience(this.exp, this.expLevel + levels);
                             break;
-=======
->>>>>>> upstream/feature/1.16
                     }
                     break;
                 case ProtocolInfo.COMMAND_REQUEST_PACKET:
