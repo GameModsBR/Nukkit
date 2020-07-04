@@ -1,5 +1,7 @@
 package cn.nukkit.permission;
 
+import com.sun.istack.internal.NotNull;
+
 /**
  * author: MagicDroidX
  * Nukkit Project
@@ -14,11 +16,7 @@ public class PermissionAttachmentInfo {
 
     private boolean value;
 
-    public PermissionAttachmentInfo(Permissible permissible, String permission, PermissionAttachment attachment, boolean value) {
-        if (permission == null) {
-            throw new IllegalStateException("Permission may not be null");
-        }
-
+    public PermissionAttachmentInfo(Permissible permissible, @NotNull String permission, PermissionAttachment attachment, boolean value) {
         this.permissible = permissible;
         this.permission = permission;
         this.attachment = attachment;

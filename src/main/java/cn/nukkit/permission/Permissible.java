@@ -1,6 +1,7 @@
 package cn.nukkit.permission;
 
 import cn.nukkit.plugin.Plugin;
+import com.sun.istack.internal.NotNull;
 
 import java.util.Map;
 
@@ -10,13 +11,13 @@ import java.util.Map;
  */
 public interface Permissible extends ServerOperator {
 
-    boolean isPermissionSet(String name);
+    boolean isPermissionSet(@NotNull String name);
 
-    boolean isPermissionSet(Permission permission);
+    boolean isPermissionSet(@NotNull Permission permission);
 
-    boolean hasPermission(String name);
+    boolean hasPermission(@NotNull String name);
 
-    boolean hasPermission(Permission permission);
+    boolean hasPermission(@NotNull Permission permission);
 
     PermissionAttachment addAttachment(Plugin plugin);
 
