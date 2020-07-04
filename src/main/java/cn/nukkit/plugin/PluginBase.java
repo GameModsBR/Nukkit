@@ -5,7 +5,10 @@ import cn.nukkit.api.PowerNukkitDifference;
 import cn.nukkit.command.Command;
 import cn.nukkit.command.CommandSender;
 import cn.nukkit.command.PluginIdentifiableCommand;
+import cn.nukkit.exception.UnknownConfigurationFileException;
+import cn.nukkit.exception.UnknownConfigurationSectionException;
 import cn.nukkit.utils.Config;
+import cn.nukkit.utils.ConfigSection;
 import cn.nukkit.utils.Utils;
 import com.google.common.base.Preconditions;
 import org.yaml.snakeyaml.DumperOptions;
@@ -215,6 +218,27 @@ abstract public class PluginBase implements Plugin {
             }
         }
         return false;
+    }
+
+    public ConfigSection getConfigurationSection(String sectionName) throws UnknownConfigurationSectionException {
+        ConfigSection temp = getConfig().getSection(sectionName);
+        if (temp == null) {
+            return temp;
+        } else {
+            throw new UnknownConfigurationSectionException("Configuration Section " + sectionName + " does not exists");
+        }
+    }
+
+    public ConfigSection getConfigurationSection(Config configurationFile, String sectionName) throws UnknownConfigurationSectionException, UnknownConfigurationFileException {
+        if (configurationFile == null) {
+            throw new UnknownConfigurationFileException("Configuration File does not exists");
+        }
+        ConfigSection temp = configurationFile.getSection(sectionName);
+        if (temp == null) {
+            return temp;
+        } else {
+            throw new UnknownConfigurationSectionException("Configuration Section " + sectionName + " does not exists");
+        }
     }
 
     @Override
