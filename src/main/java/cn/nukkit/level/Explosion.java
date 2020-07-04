@@ -61,6 +61,16 @@ public class Explosion {
         return false;
     }
 
+    public static void simpleExplosion(Location location) {
+        Explosion explosion = new Explosion(location.getPosition(), ExplosionSize.DEFAULT, null);
+        explosion.explode();
+    }
+
+    public static void simpleExplosion(Location location, Entity who) {
+        Explosion explosion = new Explosion(location.getPosition(), ExplosionSize.DEFAULT, who);
+        explosion.explode();
+    }
+
     /**
      * @return bool
      */

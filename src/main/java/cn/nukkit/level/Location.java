@@ -178,6 +178,10 @@ public class Location extends Position {
         return new Vector3(x, y, z).normalize();
     }
 
+    public Position getPosition() {
+        return new Position(this.x, this.y, this.z, getLevel());
+    }
+
     @Override
     public Location clone() {
         return (Location) super.clone();

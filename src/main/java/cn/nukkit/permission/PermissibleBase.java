@@ -5,6 +5,7 @@ import cn.nukkit.plugin.Plugin;
 import cn.nukkit.utils.PluginException;
 import cn.nukkit.utils.ServerException;
 import co.aikar.timings.Timings;
+import com.sun.istack.internal.NotNull;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,7 +39,7 @@ public class PermissibleBase implements Permissible {
     }
 
     @Override
-    public void setOp(boolean value) {
+    public void setOp(@NotNull boolean value) {
         if (this.opable == null) {
             throw new ServerException("Cannot change op value as no ServerOperator is set");
         } else {
@@ -47,12 +48,12 @@ public class PermissibleBase implements Permissible {
     }
 
     @Override
-    public boolean isPermissionSet(String name) {
+    public boolean isPermissionSet(@NotNull String name) {
         return this.permissions.containsKey(name);
     }
 
     @Override
-    public boolean isPermissionSet(Permission permission) {
+    public boolean isPermissionSet(@NotNull Permission permission) {
         return this.isPermissionSet(permission.getName());
     }
 
