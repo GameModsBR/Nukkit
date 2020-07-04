@@ -38,6 +38,8 @@ public interface CommandExecutor {
      *                The sender of this command, this can be a player or a console.
      * @param command 要被发送的命令。<br>
      *                The command to send.
+     * @param label   这个命令的标签。<br>	
+     *                Label of the command.
      * @param args    这个命令的参数列表。<br>
      *                Arguments of this command.
      * @return 这个命令执行是否执行成功。<br>whether this command is executed successfully.
