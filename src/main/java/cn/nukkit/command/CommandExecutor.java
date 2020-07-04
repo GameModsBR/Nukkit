@@ -43,5 +43,5 @@ public interface CommandExecutor {
      * @return 这个命令执行是否执行成功。<br>whether this command is executed successfully.
      * @since Nukkit 1.0 | Nukkit API 1.0.0
      */
-    boolean onCommand(CommandSender sender, Command command, String[] args);
+    boolean onCommand(CommandSender sender, Command command, String label, String[] args);
 }
