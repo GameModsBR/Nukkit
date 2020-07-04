@@ -174,7 +174,7 @@ abstract public class PluginBase implements Plugin {
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    public boolean onCommand(CommandSender sender, Command command, String[] args) {
         return false;
     }
 
