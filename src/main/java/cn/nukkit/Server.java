@@ -123,7 +123,7 @@ public class Server {
 
     private Config whitelist;
 
-    private AtomicBoolean isRunning = new AtomicBoolean(true);
+    private boolean isRunning = true;
 
     private boolean hasStopped = false;
 
@@ -843,7 +843,12 @@ public class Server {
     }
 
     public void shutdown() {
-        isRunning.compareAndSet(true, false);
+        if(isRunning) {
+         isRunning = false;
+        }else{
+         isRunning = true;
+        }
+        
     }
 
     public void forceShutdown() {
@@ -852,7 +857,11 @@ public class Server {
         }
 
         try {
-            isRunning.compareAndSet(true, false);
+         if(isRunning) {
+           isRunning = false;
+         }else{
+           isRunning = true;
+         }
 
             this.hasStopped = true;
 
@@ -957,7 +966,7 @@ public class Server {
     public void tickProcessor() {
         this.nextTick = System.currentTimeMillis();
         try {
-            while (this.isRunning.get()) {
+            while (this.isRunning) {
                 try {
                     this.tick();
 
@@ -1299,7 +1308,7 @@ public class Server {
     }
 
     public boolean isRunning() {
-        return isRunning.get();
+        return isRunning;
     }
 
     public String getNukkitVersion() {
