@@ -5,9 +5,7 @@ import cn.nukkit.api.Since;
 import cn.nukkit.event.inventory.InventoryClickEvent;
 import cn.nukkit.event.inventory.InventoryTransactionEvent;
 import cn.nukkit.inventory.Inventory;
-import cn.nukkit.inventory.PlayerCursorInventory;
 import cn.nukkit.inventory.PlayerInventory;
-import cn.nukkit.inventory.PlayerUIInventory;
 import cn.nukkit.inventory.transaction.action.InventoryAction;
 import cn.nukkit.inventory.transaction.action.SlotChangeAction;
 import cn.nukkit.item.Item;
@@ -203,19 +201,8 @@ public class InventoryTransaction {
 
         if (!callExecuteEvent()) {
             this.sendInventories();
-            
-            boolean actionContainsCursorInv = false;
-            for (InventoryAction action : this.actions) {
-                if (!(action instanceof SlotChangeAction))
-                    continue;
-                SlotChangeAction slotChange = (SlotChangeAction) action;
+            this.source.getCursorInventory().sendSlot(0, this.source);
 
-                if (slotChange.getInventory() instanceof PlayerCursorInventory || slotChange.getInventory() instanceof PlayerUIInventory)
-                    actionContainsCursorInv = true;
-            }
-            if (actionContainsCursorInv)
-                this.source.getCursorInventory().sendSlot(0, this.source);
-            
             return true;
         }
 
