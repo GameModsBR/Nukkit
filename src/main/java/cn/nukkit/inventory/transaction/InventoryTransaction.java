@@ -201,6 +201,19 @@ public class InventoryTransaction {
 
         if (!callExecuteEvent()) {
             this.sendInventories();
+            
+            boolean actionContainsCursorInv = false;
+            for (InventoryAction action : this.actions) {
+                if (!(action instanceof SlotChangeAction))
+                    continue;
+                SlotChangeAction slotChange = (SlotChangeAction) action;
+
+                if (slotChange.getInventory() instanceof PlayerCursorInventory || slotChange.getInventory() instanceof PlayerUIInventory)
+                    actionContainsCursorInv = true;
+            }
+            if (actionContainsCursorInv)
+                this.source.getCursorInventory().sendSlot(0, this.source);
+            
             return true;
         }
 
