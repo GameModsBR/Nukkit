@@ -5268,7 +5268,7 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
             this.fishing.close();
         }
 
-        this.fishing = null;his.setDataFlag(DATA_FLAGS_EXTENDED, DATA_FLAG_BLOCKING, this.isSneaking() && (this.ge
+        this.fishing = null;
     }
 
     @Override
