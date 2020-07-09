@@ -1832,6 +1832,7 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
 
         this.setDataFlag(DATA_FLAGS_EXTENDED, DATA_FLAG_BLOCKING, this.isSneaking() && (this.getInventory().getItemInHand().getId() == Item.SHIELD || this.getOffhandInventory().getItem(0).getId() == Item.SHIELD));
 
+        updateBlockingFlag();
         return true;
     }
 
@@ -5267,12 +5268,37 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
             this.fishing.close();
         }
 
-        this.fishing = null;
+        this.fishing = null;his.setDataFlag(DATA_FLAGS_EXTENDED, DATA_FLAG_BLOCKING, this.isSneaking() && (this.ge
     }
 
     @Override
     public boolean doesTriggerPressurePlate() {
         return this.gamemode != SPECTATOR;
+    }
+
+    private void updateBlockingFlag() {
+        boolean shieldInHand = this.getInventory().getItemInHand().getId() == ItemID.SHIELD;
+        boolean shieldInOffhand = this.getOffhandInventory().getItem(0).getId() == ItemID.SHIELD;
+        if (isBlocking()) {
+            if (!isSneaking() || (!shieldInHand && !shieldInOffhand)) {
+                this.setBlocking(false);
+            }
+        } else if (isSneaking() && (shieldInHand || shieldInOffhand)) {
+            this.setBlocking(true);
+        }
+    }
+
+    @Override
+    protected void onBlock(Entity entity, boolean animate) {
+        super.onBlock(entity, animate);
+        if (animate) {
+            this.setDataFlag(DATA_FLAGS, DATA_FLAG_BLOCKED_USING_DAMAGED_SHIELD, true);
+            this.getServer().getScheduler().scheduleTask(null, ()-> {
+                if (this.isOnline()) {
+                    this.setDataFlag(DATA_FLAGS, DATA_FLAG_BLOCKED_USING_DAMAGED_SHIELD, false);
+                }
+            });
+        }
     }
 
     @Override
