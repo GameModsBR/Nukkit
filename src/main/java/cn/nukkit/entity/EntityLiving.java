@@ -151,6 +151,7 @@ public abstract class EntityLiving extends Entity implements EntityDamageable {
             Server.broadcastPacket(this.hasSpawned.values(), pk);
 
             this.attackTime = source.getAttackCooldown();
+            this.scheduleUpdate();
 
             return true;
         } else {
