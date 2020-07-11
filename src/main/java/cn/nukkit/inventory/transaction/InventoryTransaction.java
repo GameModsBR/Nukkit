@@ -201,8 +201,6 @@ public class InventoryTransaction {
 
         if (!callExecuteEvent()) {
             this.sendInventories();
-            this.source.getCursorInventory().sendSlot(0, this.source);
-
             return true;
         }
 
