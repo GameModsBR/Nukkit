@@ -76,6 +76,7 @@ public class PlayerUIInventory extends BaseInventory {
             if (p == this.getHolder()) {
                 pk.inventoryId = ContainerIds.UI;
                 p.dataPacket(pk);
+                this.getCursorInventory().sendSlot(0, p);
             } else {
                 int id;
 
