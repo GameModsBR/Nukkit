@@ -1,6 +1,7 @@
 package cn.nukkit.block;
 
 import cn.nukkit.Player;
+import cn.nukkit.Server;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockentity.BlockEntityMovingBlock;
 import cn.nukkit.blockentity.BlockEntityPistonArm;
@@ -67,6 +68,13 @@ public abstract class BlockPistonBase extends BlockSolidMeta implements Faceable
         } else {
             this.setDamage(player.getHorizontalFacing().getIndex());
         }
+        if(this.level.getBlockEntity(this) != null) {
+            BlockEntity blockEntity = this.level.getBlockEntity(this);
+            Server.getInstance().getLogger().warning("Found unused BlockEntity at world=" + blockEntity.getLevel().getName() + " x=" + blockEntity.getX() + " y=" + blockEntity.getY() + " z=" + blockEntity.getZ() + " whilst attempting to place piston, closing it.");
+            blockEntity.saveNBT();
+            blockEntity.close();
+        }
+
         this.level.setBlock(block, this, true, true);
 
         CompoundTag nbt = new CompoundTag("")
