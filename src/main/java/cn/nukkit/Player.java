@@ -2016,7 +2016,7 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
 
         this.adventureSettings = new AdventureSettings(this)
                 .set(Type.WORLD_IMMUTABLE, isAdventure() || isSpectator())
-                .set(Type.WORLD_BUILDER, !isAdventure() && !isSpectator())
+                .set(Type.WORLD_BUILDER, !isAdventure() || !isSpectator())
                 .set(Type.AUTO_JUMP, true)
                 .set(Type.ALLOW_FLIGHT, isCreative())
                 .set(Type.NO_CLIP, isSpectator());
