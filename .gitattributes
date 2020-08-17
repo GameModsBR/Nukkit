@@ -1,2 +1,3 @@
 # Auto detect text files and perform LF normalization
-*.java text eol=lf
+* text=auto
+*.java text
