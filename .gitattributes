@@ -1,3 +1,6 @@
 # Auto detect text files and perform LF normalization
 * text=auto
-*.java text
+*.java text 
+*.jpg binary
+*.png binary
+*.dat binary
