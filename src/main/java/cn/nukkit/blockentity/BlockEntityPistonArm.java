@@ -1,6 +1,7 @@
 package cn.nukkit.blockentity;
 
 import cn.nukkit.Player;
+import cn.nukkit.api.PowerNukkitDifference;
 import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockAir;
 import cn.nukkit.block.BlockID;
@@ -22,6 +23,7 @@ import java.util.List;
 /**
  * @author CreeperFace
  */
+@PowerNukkitDifference(info = "The piston will work as close as possible to vanilla")
 public class BlockEntityPistonArm extends BlockEntitySpawnable {
 
     public static final float MOVE_STEP = Float.valueOf(0.5f);
@@ -178,7 +180,7 @@ public class BlockEntityPistonArm extends BlockEntitySpawnable {
                     movingBlock.close();
                     Block moved = ((BlockEntityMovingBlock) movingBlock).getMovingBlock();
 
-                    CompoundTag blockEntity = ((BlockEntityMovingBlock) movingBlock).getBlockEntity();
+                    CompoundTag blockEntity = ((BlockEntityMovingBlock) movingBlock).getMovingBlockEntityCompound();
 
                     if (blockEntity != null) {
                         blockEntity.putInt("x", movingBlock.getFloorX());
@@ -191,8 +193,10 @@ public class BlockEntityPistonArm extends BlockEntitySpawnable {
                 }
             }
 
-            if (!extending && this.level.getBlock(getSide(facing)).getId() == (sticky? BlockID.PISTON_HEAD_STICKY : BlockID.PISTON_HEAD)) {
-                this.level.setBlock(getSide(facing), new BlockAir());
+            if (!extending) {
+                if (this.level.getBlock(getSide(facing)).getId() == (sticky? BlockID.PISTON_HEAD_STICKY : BlockID.PISTON_HEAD)) {
+                    this.level.setBlock(getSide(facing), new BlockAir());
+                }
                 this.movable = true;
             }
 
@@ -211,7 +215,8 @@ public class BlockEntityPistonArm extends BlockEntitySpawnable {
     }
 
     public boolean isBlockEntityValid() {
-        return true;
+        int id = getLevelBlock().getId();
+        return id == BlockID.PISTON || id == BlockID.STICKY_PISTON; 
     }
 
     public void saveNBT() {

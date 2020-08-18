@@ -6,8 +6,7 @@ import com.sun.istack.internal.NotNull;
 import java.util.Map;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * @author MagicDroidX (Nukkit Project)
  */
 public interface Permissible extends ServerOperator {
 

@@ -1,16 +1,19 @@
 package cn.nukkit.item;
 
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
 import cn.nukkit.block.Block;
+import cn.nukkit.block.BlockID;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.item.enchantment.Enchantment;
 import cn.nukkit.nbt.tag.ByteTag;
 import cn.nukkit.nbt.tag.Tag;
 
+import javax.annotation.Nonnull;
 import java.util.Random;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * @author MagicDroidX (Nukkit Project)
  */
 public abstract class ItemTool extends Item implements ItemDurable {
     public static final int TIER_WOODEN = 1;
@@ -18,6 +21,7 @@ public abstract class ItemTool extends Item implements ItemDurable {
     public static final int TIER_STONE = 3;
     public static final int TIER_IRON = 4;
     public static final int TIER_DIAMOND = 5;
+    public static final int TIER_NETHERITE = 6;
 
     public static final int TYPE_NONE = 0;
     public static final int TYPE_SWORD = 1;
@@ -35,11 +39,34 @@ public abstract class ItemTool extends Item implements ItemDurable {
     public static final int DURABILITY_STONE = 132;
     public static final int DURABILITY_IRON = 251;
     public static final int DURABILITY_DIAMOND = 1562;
+    public static final int DURABILITY_NETHERITE = 2032;
     public static final int DURABILITY_FLINT_STEEL = 65;
     public static final int DURABILITY_SHEARS = 239;
     public static final int DURABILITY_BOW = 385;
     public static final int DURABILITY_TRIDENT = 251;
     public static final int DURABILITY_FISHING_ROD = 65;
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    @Nonnull
+    public static Item getBestTool(int toolType) {
+        switch (toolType) {
+            default:
+            case TYPE_NONE:
+            case TYPE_PICKAXE:
+                return Item.get(ItemID.NETHERITE_PICKAXE);
+            case TYPE_AXE:
+                return Item.get(ItemID.NETHERITE_AXE);
+            case TYPE_SHOVEL:
+                return Item.get(ItemID.NETHERITE_SHOVEL);
+            case TYPE_SHEARS:
+                return Item.get(ItemID.SHEARS);
+            case TYPE_SWORD:
+                return Item.get(ItemID.NETHERITE_SWORD);
+            case TYPE_HANDS_ONLY:
+                return Item.getBlock(BlockID.AIR);
+        }
+    }
 
     public ItemTool(int id) {
         this(id, 0, 1, UNKNOWN_STR);
@@ -64,7 +91,7 @@ public abstract class ItemTool extends Item implements ItemDurable {
 
     @Override
     public boolean useOn(Block block) {
-        if (this.isUnbreakable() || isDurable()) {
+        if (this.isUnbreakable() || isDurable() || !damageWhenBreaking()) {
             return true;
         }
 
@@ -89,7 +116,7 @@ public abstract class ItemTool extends Item implements ItemDurable {
 
     @Override
     public boolean useOn(Entity entity) {
-        if (this.isUnbreakable() || isDurable()) {
+        if (this.isUnbreakable() || isDurable() || !damageWhenBreaking()) {
             return true;
         }
 
@@ -149,7 +176,7 @@ public abstract class ItemTool extends Item implements ItemDurable {
 
     @Override
     public boolean isTool() {
-        return (this.id == FLINT_STEEL || this.id == SHEARS || this.id == BOW || this.isPickaxe() || this.isAxe() || this.isShovel() || this.isSword() || this.isHoe());
+        return (this.id == FLINT_STEEL || this.id == SHEARS || this.id == BOW || this.id == SHIELD  || this.isPickaxe() || this.isAxe() || this.isShovel() || this.isSword() || this.isHoe());
     }
 
     @Override
@@ -158,6 +185,7 @@ public abstract class ItemTool extends Item implements ItemDurable {
             case TIER_STONE:
                 return 5;
             case TIER_WOODEN:
+            case TIER_NETHERITE:
                 return 15;
             case TIER_DIAMOND:
                 return 10;

@@ -3,8 +3,7 @@ package cn.nukkit.permission;
 import com.sun.istack.internal.NotNull;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * @author MagicDroidX (Nukkit Project)
  */
 public class PermissionAttachmentInfo {
 

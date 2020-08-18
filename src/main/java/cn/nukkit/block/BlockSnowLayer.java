@@ -1,6 +1,7 @@
 package cn.nukkit.block;
 
 import cn.nukkit.Player;
+import cn.nukkit.api.PowerNukkitDifference;
 import cn.nukkit.event.block.BlockFadeEvent;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemSnowball;
@@ -10,30 +11,21 @@ import cn.nukkit.math.AxisAlignedBB;
 import cn.nukkit.math.BlockFace;
 import cn.nukkit.utils.BlockColor;
 
-/**
- * Created on 2015/12/6 by xtypr.
- * Package cn.nukkit.block in project Nukkit .
- */
-public class BlockSnowLayer extends BlockFallable {
+import javax.annotation.Nonnull;
 
-    private int meta;
+/**
+ * @author xtypr
+ * @since 2015/12/6
+ */
+@PowerNukkitDifference(info = "Extends BlockFallableMeta instead of BlockFallable")
+public class BlockSnowLayer extends BlockFallableMeta {
 
     public BlockSnowLayer() {
-        this(0);
+        // Does nothing
     }
 
     public BlockSnowLayer(int meta) {
-        this.meta = meta;
-    }
-
-    @Override
-    public final int getDamage() {
-        return this.meta;
-    }
-
-    @Override
-    public final void setDamage(int meta) {
-        this.meta = meta;
+        super(meta);
     }
 
     @Override
@@ -67,7 +59,7 @@ public class BlockSnowLayer extends BlockFallable {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, double fx, double fy, double fz, Player player) {
+    public boolean place(@Nonnull Item item, @Nonnull Block block, @Nonnull Block target, @Nonnull BlockFace face, double fx, double fy, double fz, Player player) {
         Block down = this.down();
         if (down.isSolid()) {
             this.getLevel().setBlock(block, this, true);

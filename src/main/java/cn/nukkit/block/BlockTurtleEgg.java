@@ -1,6 +1,7 @@
 package cn.nukkit.block;
 
 import cn.nukkit.Player;
+import cn.nukkit.api.PowerNukkitOnly;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityLiving;
 import cn.nukkit.entity.mob.EntityGhast;
@@ -22,14 +23,11 @@ import cn.nukkit.level.GlobalBlockPalette;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.Sound;
 import cn.nukkit.level.particle.BoneMealParticle;
-import cn.nukkit.math.AxisAlignedBB;
-import cn.nukkit.math.BlockFace;
-import cn.nukkit.math.MathHelper;
-import cn.nukkit.math.SimpleAxisAlignedBB;
-import cn.nukkit.math.Vector3;
+import cn.nukkit.math.*;
 import cn.nukkit.network.protocol.LevelSoundEventPacket;
 import cn.nukkit.utils.BlockColor;
 
+import javax.annotation.Nonnull;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class BlockTurtleEgg extends BlockFlowable {
@@ -89,8 +87,8 @@ public class BlockTurtleEgg extends BlockFlowable {
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
-        if (item.getBlock() != null && item.getBlock().getId() == TURTLE_EGG && (player == null || !player.isSneaking())) {
+    public boolean onActivate(@Nonnull Item item, Player player) {
+        if (item.getBlock() != null && item.getBlockId() == TURTLE_EGG && (player == null || !player.isSneaking())) {
             int eggCount = getEggCount();
             if (eggCount >= 4) {
                 return false;
@@ -291,7 +289,7 @@ public class BlockTurtleEgg extends BlockFlowable {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, double fx, double fy, double fz, Player player) {
+    public boolean place(@Nonnull Item item, @Nonnull Block block, @Nonnull Block target, @Nonnull BlockFace face, double fx, double fy, double fz, Player player) {
         if (!isValidSupport(block.down(1, 0))) {
             return false;
         }
@@ -333,6 +331,7 @@ public class BlockTurtleEgg extends BlockFlowable {
         return true;
     }
 
+    @PowerNukkitOnly
     @Override
     public int getWaterloggingLevel() {
         return 1;
