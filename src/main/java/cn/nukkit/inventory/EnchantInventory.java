@@ -1,15 +1,18 @@
 package cn.nukkit.inventory;
 
 import cn.nukkit.Player;
+import cn.nukkit.api.Since;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.Position;
 
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * @author MagicDroidX (Nukkit Project)
  */
 public class EnchantInventory extends FakeBlockUIComponent {
+
+    @Since("1.3.1.0-PN") public static final int ENCHANT_INPUT_ITEM_UI_SLOT = 14;
+    @Since("1.3.1.0-PN") public static final int ENCHANT_REAGENT_UI_SLOT = 15;
 
     public EnchantInventory(PlayerUIInventory playerUI, Position position) {
         super(playerUI, InventoryType.ENCHANT_TABLE, 14, position);
@@ -36,5 +39,20 @@ public class EnchantInventory extends FakeBlockUIComponent {
         clear(0);
         clear(1);
         who.resetCraftingGridType();
+    }
+
+    @Since("1.3.1.0-PN")
+    public Item getInputSlot() {
+        return this.getItem(0);
+    }
+
+    @Since("1.3.1.0-PN")
+    public Item getOutputSlot() {
+        return this.getItem(0);
+    }
+
+    @Since("1.3.1.0-PN")
+    public Item getReagentSlot() {
+        return this.getItem(1);
     }
 }

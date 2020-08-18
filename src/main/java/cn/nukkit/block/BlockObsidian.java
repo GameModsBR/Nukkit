@@ -5,8 +5,8 @@ import cn.nukkit.item.ItemTool;
 import cn.nukkit.utils.BlockColor;
 
 /**
- * Created on 2015/12/2 by xtypr.
- * Package cn.nukkit.block in project Nukkit .
+ * @author xtypr
+ * @since 2015/12/2
  */
 public class BlockObsidian extends BlockSolid {
 
@@ -30,7 +30,7 @@ public class BlockObsidian extends BlockSolid {
 
     @Override
     public double getHardness() {
-        return 35; //50 in PC
+        return 35; //TODO Should be 50 but the break time calculation is broken
     }
 
     @Override

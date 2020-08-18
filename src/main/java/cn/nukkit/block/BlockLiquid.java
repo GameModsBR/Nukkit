@@ -17,8 +17,7 @@ import it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * @author MagicDroidX (Nukkit Project)
  */
 public abstract class BlockLiquid extends BlockTransparentMeta {
 
@@ -482,13 +481,11 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
     protected boolean canFlowInto(Block block) {
         if (usesWaterLogging()) {
             if (block.canWaterloggingFlowInto()) {
-                block = block.getLevelBlockAtLayer(1);
-                return !(block instanceof BlockLiquid && block.getDamage() == 0);
+                Block blockLayer1 = block.getLevelBlockAtLayer(1);
+                return !(block instanceof BlockLiquid && block.getDamage() == 0) && !(blockLayer1 instanceof BlockLiquid && blockLayer1.getDamage() == 0);
             }
-            return false;
-        } else {
-            return block.canBeFlowedInto() && !(block instanceof BlockLiquid && block.getDamage() == 0);
         }
+        return block.canBeFlowedInto() && !(block instanceof BlockLiquid && block.getDamage() == 0);
     }
 
     @Override
