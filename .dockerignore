@@ -1,3 +1,11 @@
 Jenkinsfile
 README.md
 data
+run
+*.iml
+logs
+.idea
+.github
+Dockerfile
+docker-compose.yml
+target
