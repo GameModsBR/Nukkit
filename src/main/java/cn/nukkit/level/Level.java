@@ -493,14 +493,14 @@ public class Level implements ChunkManager, Metadatable {
         addChunkPacket(pos.getFloorX() >> 4, pos.getFloorZ() >> 4, pk);
     }
 
-    @PowerNukkitOnly
+    @PowerNukkitDifference(info = "Default sound method changed to addSound", since = "1.4.0.0-PN")
     @Deprecated
     @DeprecationDetails(reason = "Old method, use addSound(pos, Sound.<SOUND_VALUE>).", since = "1.4.0.0-PN")
     public void addLevelSoundEvent(Vector3 pos, int type, int data, int entityType) {
         addLevelSoundEvent(pos, type, data, entityType, false, false);
     }
 
-    @PowerNukkitOnly
+    @PowerNukkitDifference(info = "Default sound method changed to addSound", since = "1.4.0.0-PN")
     @Deprecated
     @DeprecationDetails(reason = "Old method, use addSound(pos, Sound.<SOUND_VALUE>).", since = "1.4.0.0-PN")
     public void addLevelSoundEvent(Vector3 pos, int type, int data, int entityType, boolean isBaby, boolean isGlobal) {
@@ -508,7 +508,7 @@ public class Level implements ChunkManager, Metadatable {
         addLevelSoundEvent(pos, type, data, identifier, isBaby, isGlobal);
     }
 
-    @PowerNukkitOnly
+    @PowerNukkitDifference(info = "Default sound method changed to addSound", since = "1.4.0.0-PN")
     @Deprecated
     @DeprecationDetails(reason = "Old method, use addSound(pos, Sound.<SOUND_VALUE>).", since = "1.4.0.0-PN")
     public void addLevelSoundEvent(Vector3 pos, int type) {
@@ -522,14 +522,14 @@ public class Level implements ChunkManager, Metadatable {
      * @param type ID of the sound from {@link cn.nukkit.network.protocol.LevelSoundEventPacket}
      * @param data generic data that can affect sound
      */
-    @PowerNukkitOnly
+    @PowerNukkitDifference(info = "Default sound method changed to addSound", since = "1.4.0.0-PN")
     @Deprecated
     @DeprecationDetails(reason = "Old method, use addSound(pos, Sound.<SOUND_VALUE>).", since = "1.4.0.0-PN")
     public void addLevelSoundEvent(Vector3 pos, int type, int data) {
         this.addLevelSoundEvent(pos, type, data, ":", false, false);
     }
 
-    @PowerNukkitOnly
+    @PowerNukkitDifference(info = "Default sound method changed to addSound", since = "1.4.0.0-PN")
     @Deprecated
     @DeprecationDetails(reason = "Old method, use addSound(pos, Sound.<SOUND_VALUE>).", since = "1.4.0.0-PN")
     public void addLevelSoundEvent(Vector3 pos, int type, int data, String identifier, boolean isBaby, boolean isGlobal) {
@@ -928,9 +928,7 @@ public class Level implements ChunkManager, Metadatable {
         this.timings.doTick.stopTiming();
     }
 
-    @PowerNukkitOnly
-    @Deprecated
-    @DeprecationDetails(reason = "Old method, use addSound(pos, Sound.<SOUND_VALUE>).", since = "1.4.0.0-PN")
+    @PowerNukkitDifference(info = "Using new method to play sounds", since = "1.4.0.0-PN")
     private void performThunder(long index, FullChunk chunk) {
         if (areNeighboringChunksLoaded(index)) return;
         if (ThreadLocalRandom.current().nextInt(10000) == 0) {
@@ -3765,9 +3763,7 @@ public class Level implements ChunkManager, Metadatable {
         return (this.updateLCG = (this.updateLCG * 3) ^ LCG_CONSTANT);
     }
 
-    @PowerNukkitOnly
-    @Deprecated
-    @DeprecationDetails(reason = "Old method, use addSound(pos, Sound.<SOUND_VALUE>).", since = "1.4.0.0-PN")
+    @PowerNukkitDifference(info = "Using new method to play sounds", since = "1.4.0.0-PN")
     public boolean createPortal(Block target) {
         int maxPortalSize = 23;
         final int targX = target.getFloorX();
