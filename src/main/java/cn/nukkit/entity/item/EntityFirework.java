@@ -130,7 +130,7 @@ public class EntityFirework extends Entity {
                 pk.event = EntityEventPacket.FIREWORK_EXPLOSION;
                 pk.eid = this.getId();
 
-                level.addSound(this, Sound.FIREWORK_LARGE_BLAST, -1, NETWORK_ID);
+                level.addSound(this, Sound.FIREWORK_LARGE_BLAST, 1, NETWORK_ID);
 
                 Server.broadcastPacket(getViewers().values(), pk);
 
