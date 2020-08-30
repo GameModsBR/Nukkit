@@ -40,6 +40,7 @@ public class ItemFlintSteel extends ItemTool {
         if (block.getId() == AIR && (target.isSolid() || target.getBurnChance() > 0)) {
             if (target.getId() == OBSIDIAN) {
                 if (level.createPortal(target)) {
+                    damageItem(player, block);
                     return true;
                 }
             }
@@ -56,22 +57,29 @@ public class ItemFlintSteel extends ItemTool {
 
                 if (!e.isCancelled()) {
                     level.setBlock(fire, fire, true);
-                    level.addSound(block, Sound.FIRE_IGNITE);
                     level.scheduleUpdate(fire, fire.tickRate() + ThreadLocalRandom.current().nextInt(10));
                 }
+                damageItem(player, block);
                 return true;
             }
 
-            if ((player.gamemode & 0x01) == 0 && this.useOn(block)) {
-                if (this.getDamage() >= this.getMaxDurability()) {
-                    this.count = 0;
-                } else {
-                    this.meta++;
-                }
-            }
+            damageItem(player, block);
             return true;
         }
+        damageItem(player, block);
         return false;
+    }
+    
+    private void damageItem(Player player, Block block) {
+        if (!player.isCreative() && useOn(block)) {
+            if (this.getDamage() >= this.getMaxDurability()) {
+                this.count = 0;
+                player.getInventory().setItemInHand(Item.getBlock(BlockID.AIR));
+            } else {
+                player.getInventory().setItemInHand(this);
+            }
+        }
+        block.getLevel().addSound(block, Sound.FIRE_IGNITE);
     }
 
     @Override

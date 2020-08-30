@@ -217,6 +217,7 @@ public interface ItemID {
     int SHULKER_SHELL = 445;
     int BANNER = 446;
     int TOTEM = 450;
+    
     int IRON_NUGGET = 452;
 
     int TRIDENT = 455;
@@ -267,7 +268,8 @@ public interface ItemID {
     int HONEYCOMB = 736;
     int HONEY_BOTTLE = 737;
 
-    //int LODESTONECOMPASS = 741;
+    int LODESTONECOMPASS = 741;
+    int LODESTONE_COMPASS = 741;
     int NETHERITE_INGOT = 742;
     int NETHERITE_SWORD = 743;
     int NETHERITE_SHOVEL = 744;
@@ -288,5 +290,5 @@ public interface ItemID {
     int RECORD_PIGSTEP = 759;
     int NETHER_SPROUTS = 760;
     
-    //int SOUL_CAMPFIRE = 801;
+    int SOUL_CAMPFIRE = 801;
 }

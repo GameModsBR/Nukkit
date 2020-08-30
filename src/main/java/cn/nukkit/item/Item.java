@@ -51,7 +51,7 @@ public class Item implements Cloneable, BlockID, ItemID {
     protected int meta;
     protected boolean hasMeta = true;
     private byte[] tags = new byte[0];
-    private CompoundTag cachedNBT = null;
+    private transient CompoundTag cachedNBT = null;
     public int count;
     protected int durability = 0;
     protected String name;
@@ -286,7 +286,9 @@ public class Item implements Cloneable, BlockID, ItemID {
             list[BANNER] = ItemBanner.class; //446
 
             list[TOTEM] = ItemTotem.class; //450
-
+            
+            list[IRON_NUGGET] = ItemNuggetIron.class; //452
+            
             list[TRIDENT] = ItemTrident.class; //455
 
             list[BEETROOT] = ItemBeetroot.class; //457
@@ -331,7 +333,7 @@ public class Item implements Cloneable, BlockID, ItemID {
             list[HONEYCOMB] = ItemHoneycomb.class; //736
             list[HONEY_BOTTLE] = ItemHoneyBottle.class; //737
                         
-            //list[LODESTONECOMPASS] = ItemCompassLodestone.class; //741;
+            list[LODESTONECOMPASS] = ItemCompassLodestone.class; //741;
             list[NETHERITE_INGOT] = ItemIngotNetherite.class; //742
             list[NETHERITE_SWORD] = ItemSwordNetherite.class; //743
             list[NETHERITE_SHOVEL] = ItemShovelNetherite.class; //744
@@ -351,6 +353,8 @@ public class Item implements Cloneable, BlockID, ItemID {
             list[CHAIN] = ItemChain.class; //758
             list[RECORD_PIGSTEP] = ItemRecordPigstep.class; //759
             list[NETHER_SPROUTS] = ItemNetherSprouts.class; //760
+            
+            list[SOUL_CAMPFIRE] = ItemCampfireSoul.class; //801
 
             for (int i = 0; i < 256; ++i) {
                 if (Block.list[i] != null) {
@@ -1236,6 +1240,7 @@ public class Item implements Cloneable, BlockID, ItemID {
         try {
             Item item = (Item) super.clone();
             item.tags = this.tags.clone();
+            item.cachedNBT = null;
             return item;
         } catch (CloneNotSupportedException e) {
             return null;
