@@ -11,6 +11,7 @@ import cn.nukkit.item.ItemBlock;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
 import cn.nukkit.utils.HumanStringComparator;
+import cn.nukkit.utils.MainLogger;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -77,12 +78,22 @@ public interface IBlockState {
 
     @PowerNukkitOnly
     @Since("1.4.0.0-PN")
+    @Nonnull
     default String getPersistenceName() {
-        return BlockStateRegistry.getPersistenceName(getBlockId());
+        int blockId = getBlockId();
+        String persistenceName = BlockStateRegistry.getPersistenceName(blockId);
+        if (persistenceName == null) {
+            String fallback = "powernukkit:"+ blockId;
+            MainLogger.getLogger().warning("The persistence name of the block id "+ blockId +" is unknown! Using "+fallback+" as an alternative!");
+            BlockStateRegistry.registerPersistenceName(blockId, fallback);
+            return fallback;
+        }
+        return persistenceName;
     }
     
     @PowerNukkitOnly
     @Since("1.4.0.0-PN")
+    @Nonnull
     default String getStateId() {
         BlockProperties properties = getProperties();
         Map<String, String> propertyMap = new TreeMap<>(HumanStringComparator.getInstance());
@@ -95,6 +106,7 @@ public interface IBlockState {
 
     @PowerNukkitOnly
     @Since("1.4.0.0-PN")
+    @Nonnull
     default String getLegacyStateId() {
         return getPersistenceName()+";nukkit-legacy="+getDataStorage();
     }
@@ -189,10 +201,12 @@ public interface IBlockState {
 
     int getExactIntStorage();
 
+    @Nonnull
     default ItemBlock asItemBlock() {
         return asItemBlock(1);
     }
 
+    @Nonnull
     default ItemBlock asItemBlock(int count) {
         BlockState currentState = getCurrentState();
         BlockState itemState = currentState.forItem();

@@ -1737,6 +1737,7 @@ public abstract class Block extends Position implements Metadatable, Cloneable, 
         return true;
     }
 
+    @Nonnull
     @Override
     public final ItemBlock asItemBlock() {
         return asItemBlock(1);
