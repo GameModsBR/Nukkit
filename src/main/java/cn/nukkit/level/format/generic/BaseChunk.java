@@ -120,7 +120,8 @@ public abstract class BaseChunk extends BaseFullChunk implements Chunk {
     @PowerNukkitOnly
     @Override
     public Block getAndSetBlock(int x, int y, int z, int layer, Block block) {
-        return getAndSetBlockState(x, y, z, layer, block.getCurrentState()).getBlock();
+        return getAndSetBlockState(x, y, z, layer, block.getCurrentState())
+                .getBlockRepairing(null, x + (getX() << 4), y, z + (getX() << 4), layer);
     }
 
     @Deprecated

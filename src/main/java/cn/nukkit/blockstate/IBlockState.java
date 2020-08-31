@@ -1,5 +1,6 @@
 package cn.nukkit.blockstate;
 
+import cn.nukkit.Server;
 import cn.nukkit.api.DeprecationDetails;
 import cn.nukkit.api.PowerNukkitOnly;
 import cn.nukkit.api.Since;
@@ -7,18 +8,24 @@ import cn.nukkit.block.Block;
 import cn.nukkit.blockproperty.BlockProperties;
 import cn.nukkit.blockproperty.BlockProperty;
 import cn.nukkit.blockproperty.UnknownRuntimeIdException;
+import cn.nukkit.blockstate.exception.InvalidBlockStateException;
+import cn.nukkit.event.blockstate.BlockStateRepairEvent;
+import cn.nukkit.event.blockstate.BlockStateRepairFinishEvent;
 import cn.nukkit.item.ItemBlock;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
+import cn.nukkit.math.BlockVector3;
+import cn.nukkit.math.Vector3;
+import cn.nukkit.plugin.PluginManager;
 import cn.nukkit.utils.HumanStringComparator;
 import cn.nukkit.utils.MainLogger;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.io.Serializable;
 import java.math.BigInteger;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 
 @ParametersAreNonnullByDefault
 public interface IBlockState {
@@ -43,16 +50,19 @@ public interface IBlockState {
     @Nonnull
     BigInteger getHugeDamage();
 
+    /**
+     * @throws InvalidBlockStateException
+     */
     @Nonnull
     Object getPropertyValue(String propertyName);
     
     @Nonnull
-    default <V> V getPropertyValue(BlockProperty<V> property) {
+    default <V extends Serializable> V getPropertyValue(BlockProperty<V> property) {
         return getCheckedPropertyValue(property.getName(), property.getValueClass());
     }
     
     @Nonnull
-    default <V> V getUncheckedPropertyValue(BlockProperty<V> property) {
+    default <V extends Serializable> V getUncheckedPropertyValue(BlockProperty<V> property) {
         return getUncheckedPropertyValue(property.getName());
     }
 
@@ -114,6 +124,9 @@ public interface IBlockState {
     @Nonnull
     BlockState getCurrentState();
 
+    /**
+     * @throws InvalidBlockStateException if the state contains invalid property values
+     */
     @Nonnull
     default Block getBlock() {
         Block block = Block.get(getBlockId());
@@ -121,35 +134,123 @@ public interface IBlockState {
         return block;
     }
 
+    /**
+     * @throws InvalidBlockStateException if the state contains invalid property values
+     */
     @Nonnull
-    default Block getBlock(Level level, int x, int y, int z) {
-        return getBlock(level, x, y, z, 0);
+    default Block getBlock(@Nullable Level level, int x, int y, int z) {
+        return getBlock(level, x, y, z, 0, false, null);
     }
 
+    /**
+     * @throws InvalidBlockStateException if the state contains invalid property values
+     */
     @Nonnull
-    default Block getBlock(Level level, int x, int y, int z, int layer) {
+    default Block getBlock(@Nullable Level level, int x, int y, int z, int layer) {
+        return getBlock(level, x, y, z, layer, false, null);
+    }
+
+    /**
+     * @throws InvalidBlockStateException if repair is false and the state contains invalid property values
+     */
+    @Nonnull
+    default Block getBlock(@Nullable Level level, int x, int y, int z, int layer, boolean repair) {
+        return getBlock(level, x, y, z, layer, repair, null);
+    }
+
+    /**
+     * @throws InvalidBlockStateException if repair is false and the state contains invalid property values
+     */
+    @Nonnull
+    default Block getBlock(@Nullable Level level, int x, int y, int z, int layer, boolean repair, @Nullable BlockStateRepairCallback callback) {
         Block block = Block.get(getBlockId());
-        block.setDataStorage(getDataStorage());
         block.level = level;
         block.x = x;
         block.y = y;
         block.z = z;
         block.layer = layer;
+        block.setDataStorage(getDataStorage(), true, repair && callback == null? null : stateRepair -> {
+            if (!repair) {
+                throw new InvalidBlockStateException(getCurrentState(), "Invalid block state in layer "+layer+" at: "+new Position(x, y, z, level));
+            }
+            callback.onRepair(stateRepair);
+        });
         return block;
     }
 
+    /**
+     * @throws InvalidBlockStateException if the state contains invalid property values
+     */
     @PowerNukkitOnly
     @Since("1.4.0.0-PN")
     @Nonnull
     default Block getBlock(Position position) {
         return getBlock(position, 0);
     }
-    
+
+    /**
+     * @throws InvalidBlockStateException if the state contains invalid property values
+     */
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    @Nonnull
+    default Block getBlock(Block position) {
+        return getBlock(position, position.layer);
+    }
+
+    /**
+     * @throws InvalidBlockStateException if the state contains invalid property values
+     */
     @PowerNukkitOnly
     @Since("1.4.0.0-PN")
     @Nonnull
     default Block getBlock(Position position, int layer) {
         return getBlock(position.getLevel(), position.getFloorX(), position.getFloorY(), position.getFloorZ(), layer);
+    }
+
+    default Block getBlockRepairing(Block pos) {
+        return getBlockRepairing(pos, pos.layer);
+    }
+    
+    default Block getBlockRepairing(Position position, int layer) {
+        return getBlockRepairing(position.level, position, layer);
+    }
+    
+    default Block getBlockRepairing(@Nullable Level level, BlockVector3 pos, int layer) {
+        return getBlockRepairing(level, pos.x, pos.y, pos.z, layer);
+    }
+    
+    default Block getBlockRepairing(@Nullable Level level, Vector3 pos) {
+        return getBlockRepairing(level, pos, 0);
+    }
+
+    default Block getBlockRepairing(@Nullable Level level, Vector3 pos, int layer) {
+        return getBlockRepairing(level, pos.getFloorX(), pos.getFloorY(), pos.getFloorZ());
+    }
+    
+    default Block getBlockRepairing(@Nullable Level level, int x, int y, int z) {
+        return getBlockRepairing(level, x, y, z, 0);
+    }
+    
+    default Block getBlockRepairing(@Nullable Level level, int x, int y, int z, int layer) {
+        boolean callEvent1 = !BlockStateRepairEvent.getHandlers().isEmpty();
+        List<BlockStateRepair> repairs = new ArrayList<>(0);
+        PluginManager manager = callEvent1? Server.getInstance().getPluginManager() : null;
+        Block block = getBlock(level, x, y, z, layer, true, !callEvent1? repairs::add : repair -> {
+            manager.callEvent(new BlockStateRepairEvent(repair));
+            repairs.add(repair);
+        });
+        
+        if (!BlockStateRepairFinishEvent.getHandlers().isEmpty()) {
+            BlockStateRepairFinishEvent event = new BlockStateRepairFinishEvent(repairs, block);
+            Server.getInstance().getPluginManager().callEvent(event);
+            block = event.getResult();
+        }
+        
+        if (!repairs.isEmpty()) {
+            MainLogger.getLogger().warning("The block that at "+new Position(x, y, z, level)+" was repaired. Result: "+block+", Repairs: "+repairs);
+        }
+        return block;
     }
 
     default int getRuntimeId() {

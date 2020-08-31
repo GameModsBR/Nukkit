@@ -9,6 +9,7 @@ import cn.nukkit.api.Since;
 import cn.nukkit.block.*;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockstate.BlockState;
+import cn.nukkit.blockstate.BlockStateRepair;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.item.EntityItem;
 import cn.nukkit.entity.item.EntityXPOrb;
@@ -64,6 +65,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import lombok.extern.log4j.Log4j2;
 
 import java.lang.ref.SoftReference;
 import java.util.*;
@@ -73,6 +75,7 @@ import java.util.function.Predicate;
 /**
  * @author MagicDroidX (Nukkit Project)
  */
+@Log4j2
 public class Level implements ChunkManager, Metadatable {
 
     private static int levelIdCounter = 1;
@@ -1171,7 +1174,7 @@ public class Level implements ChunkManager, Metadatable {
 
                                     BlockState state = section.getBlockState(x, y, z);
                                     if (randomTickBlocks[state.getBlockId()]) {
-                                        Block block = state.getBlock(this, chunkX * 16 + x, (Y << 4) + y, chunkZ * 16 + z);
+                                        Block block = state.getBlockRepairing(this, chunkX * 16 + x, (Y << 4) + y, chunkZ * 16 + z);
                                         block.onUpdate(BLOCK_UPDATE_RANDOM);
                                     }
                                 }
@@ -1189,7 +1192,7 @@ public class Level implements ChunkManager, Metadatable {
                                 BlockState state = chunk.getBlockState(x, y + (Y << 4), z);
                                 blockTest = blockTest || !state.equals(BlockState.AIR);
                                 if (Level.randomTickBlocks[state.getBlockId()]) {
-                                    Block block = state.getBlock(this, x, y + (Y << 4), z);
+                                    Block block = state.getBlockRepairing(this, x, y + (Y << 4), z);
                                     block.onUpdate(BLOCK_UPDATE_RANDOM);
                                 }
                             }
@@ -1587,7 +1590,11 @@ public class Level implements ChunkManager, Metadatable {
         } else {
             fullState = BlockState.AIR;
         }
-        return fullState.getBlock(this, x, y, z, layer);
+        return fullState.getBlockRepairing(this, x, y, z, layer);
+    }
+    
+    private void onRepairBlockState(BlockStateRepair repair) {
+        
     }
 
     public void updateAllLight(Vector3 pos) {
@@ -1840,24 +1847,20 @@ public class Level implements ChunkManager, Metadatable {
         if (y < 0 || y >= 256 || layer < 0 || layer > this.provider.getMaximumLayer()) {
             return false;
         }
+        BlockState state = block.getCurrentState();
         BaseFullChunk chunk = this.getChunk(x >> 4, z >> 4, true);
-        Block blockPrevious;
-//        synchronized (chunk) {
-        blockPrevious = chunk.getAndSetBlock(x & 0xF, y, z & 0xF, layer, block);
-        if (Block.equals(blockPrevious, block, true)) {
+        BlockState statePrevious = chunk.getAndSetBlockState(x & 0xF, y, z & 0xF, layer, state);
+        if (state.equals(statePrevious)) {
             return false;
         }
-//        }
         block.x = x;
         block.y = y;
         block.z = z;
         block.level = this;
         block.layer = layer;
-        blockPrevious.x = x;
-        blockPrevious.y = y;
-        blockPrevious.z = z;
-        blockPrevious.layer = layer;
-        blockPrevious.level = this;
+        
+        Block blockPrevious = statePrevious.getBlockRepairing(this, x, y, z, layer);
+        
         int cx = x >> 4;
         int cz = z >> 4;
         long index = Level.chunkHash(cx, cz);
@@ -3163,7 +3166,7 @@ public class Level implements ChunkManager, Metadatable {
                 boolean wasAir = chunk.getBlockId(x, y - 1, z) == 0;
                 for (; y > 0; --y) {
                     BlockState state = chunk.getBlockState(x, y, z);
-                    Block block = state.getBlock();
+                    Block block = state.getBlockRepairing(this, x, y, z);
                     if (this.isFullBlock(block)) {
                         if (wasAir) {
                             y++;
@@ -3176,10 +3179,10 @@ public class Level implements ChunkManager, Metadatable {
 
                 for (; y >= 0 && y < 255; y++) {
                     BlockState state = chunk.getBlockState(x, y + 1, z);
-                    Block block = state.getBlock();
+                    Block block = state.getBlockRepairing(this, x, y + 1, z);
                     if (!this.isFullBlock(block)) {
                         state = chunk.getBlockState(x, y, z);
-                        block = state.getBlock();
+                        block = state.getBlockRepairing(this, x, y, z);
                         if (!this.isFullBlock(block)) {
                             return new Position(spawn.x, y == (int) spawn.y ? spawn.y : y, spawn.z, this);
                         }

@@ -349,7 +349,9 @@ public class ChunkSection implements cn.nukkit.level.format.ChunkSection {
     @Override
     public Block getAndSetBlock(int x, int y, int z, int layer, Block block) {
         synchronized (storageList) {
-            return getOrSetStorage(layer).getAndSetBlockState(x, y, z, block.getCurrentState()).getBlock();
+            return getOrSetStorage(layer)
+                    .getAndSetBlockState(x, y, z, block.getCurrentState())
+                    .getBlockRepairing(null, x, y + (this.y << 4), z, layer);
         }
     }
 

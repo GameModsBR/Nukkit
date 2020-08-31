@@ -64,10 +64,16 @@ public interface ChunkSection {
         return BlockState.of(getBlockId(x, y, z, layer), getBlockData(x, y, z, layer));
     }
 
+    @Deprecated
+    @DeprecationDetails(since = "1.4.0.0-PN", reason = "Can't deal with invalid states properly, will always auto-repair the state silently",
+            replaceWith = "getAndSetBlockState")
     @PowerNukkitOnly
     @Nonnull
     Block getAndSetBlock(int x, int y, int z, int layer, Block block);
 
+    @Deprecated
+    @DeprecationDetails(since = "1.4.0.0-PN", reason = "Can't deal with invalid states properly, will always auto-repair the state silently",
+            replaceWith = "getAndSetBlockState")
     @Nonnull
     Block getAndSetBlock(int x, int y, int z, Block block);
     
