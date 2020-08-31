@@ -73,12 +73,12 @@ public interface FullChunk extends Cloneable {
     }
 
     @Deprecated
-    @DeprecationDetails(since = "1.4.0.0-PN", reason = "Can't deal with invalid states properly, will always auto-repair the state silently",
+    @DeprecationDetails(since = "1.4.0.0-PN", reason = "If the stored state is invalid, returns a BlockUnknown",
             replaceWith = "getAndSetBlockState")
     Block getAndSetBlock(int x, int y, int z, Block block);
 
     @Deprecated
-    @DeprecationDetails(since = "1.4.0.0-PN", reason = "Can't deal with invalid states properly, will always auto-repair the state silently",
+    @DeprecationDetails(since = "1.4.0.0-PN", reason = "If the stored state is invalid, returns a BlockUnknown",
             replaceWith = "getAndSetBlockState")
     @PowerNukkitOnly
     Block getAndSetBlock(int x, int y, int z, int layer, Block block);

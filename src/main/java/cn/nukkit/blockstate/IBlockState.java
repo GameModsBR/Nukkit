@@ -93,7 +93,7 @@ public interface IBlockState {
         int blockId = getBlockId();
         String persistenceName = BlockStateRegistry.getPersistenceName(blockId);
         if (persistenceName == null) {
-            String fallback = "powernukkit:"+ blockId;
+            String fallback = "blockid:"+ blockId;
             MainLogger.getLogger().warning("The persistence name of the block id "+ blockId +" is unknown! Using "+fallback+" as an alternative!");
             BlockStateRegistry.registerPersistenceName(blockId, fallback);
             return fallback;
