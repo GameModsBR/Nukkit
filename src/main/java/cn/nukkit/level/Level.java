@@ -51,7 +51,6 @@ import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.*;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.plugin.Plugin;
-import cn.nukkit.potion.Effect;
 import cn.nukkit.scheduler.AsyncTask;
 import cn.nukkit.scheduler.BlockUpdateScheduler;
 import cn.nukkit.timings.LevelTimings;
@@ -67,6 +66,8 @@ import it.unimi.dsi.fastutil.longs.*;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import lombok.extern.log4j.Log4j2;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.lang.ref.SoftReference;
 import java.util.*;
 import java.util.concurrent.*;
@@ -508,15 +509,24 @@ public class Level implements ChunkManager, Metadatable {
         addChunkPacket(pos.getFloorX() >> 4, pos.getFloorZ() >> 4, pk);
     }
 
+    @PowerNukkitDifference(info = "Default sound method changed to addSound", since = "1.4.0.0-PN")
+    @Deprecated
+    @DeprecationDetails(reason = "Old method, use addSound(pos, Sound.<SOUND_VALUE>).", since = "1.4.0.0-PN")
     public void addLevelSoundEvent(Vector3 pos, int type, int data, int entityType) {
         addLevelSoundEvent(pos, type, data, entityType, false, false);
     }
 
+    @PowerNukkitDifference(info = "Default sound method changed to addSound", since = "1.4.0.0-PN")
+    @Deprecated
+    @DeprecationDetails(reason = "Old method, use addSound(pos, Sound.<SOUND_VALUE>).", since = "1.4.0.0-PN")
     public void addLevelSoundEvent(Vector3 pos, int type, int data, int entityType, boolean isBaby, boolean isGlobal) {
         String identifier = AddEntityPacket.LEGACY_IDS.getOrDefault(entityType, ":");
         addLevelSoundEvent(pos, type, data, identifier, isBaby, isGlobal);
     }
 
+    @PowerNukkitDifference(info = "Default sound method changed to addSound", since = "1.4.0.0-PN")
+    @Deprecated
+    @DeprecationDetails(reason = "Old method, use addSound(pos, Sound.<SOUND_VALUE>).", since = "1.4.0.0-PN")
     public void addLevelSoundEvent(Vector3 pos, int type) {
         this.addLevelSoundEvent(pos, type, -1);
     }
@@ -528,10 +538,16 @@ public class Level implements ChunkManager, Metadatable {
      * @param type ID of the sound from {@link cn.nukkit.network.protocol.LevelSoundEventPacket}
      * @param data generic data that can affect sound
      */
+    @PowerNukkitDifference(info = "Default sound method changed to addSound", since = "1.4.0.0-PN")
+    @Deprecated
+    @DeprecationDetails(reason = "Old method, use addSound(pos, Sound.<SOUND_VALUE>).", since = "1.4.0.0-PN")
     public void addLevelSoundEvent(Vector3 pos, int type, int data) {
         this.addLevelSoundEvent(pos, type, data, ":", false, false);
     }
 
+    @PowerNukkitDifference(info = "Default sound method changed to addSound", since = "1.4.0.0-PN")
+    @Deprecated
+    @DeprecationDetails(reason = "Old method, use addSound(pos, Sound.<SOUND_VALUE>).", since = "1.4.0.0-PN")
     public void addLevelSoundEvent(Vector3 pos, int type, int data, String identifier, boolean isBaby, boolean isGlobal) {
         LevelSoundEventPacket pk = new LevelSoundEventPacket();
         pk.sound = type;
@@ -928,6 +944,7 @@ public class Level implements ChunkManager, Metadatable {
         this.timings.doTick.stopTiming();
     }
 
+    @PowerNukkitDifference(info = "Using new method to play sounds", since = "1.4.0.0-PN")
     private void performThunder(long index, FullChunk chunk) {
         if (areNeighboringChunksLoaded(index)) return;
         if (ThreadLocalRandom.current().nextInt(10000) == 0) {
@@ -962,8 +979,8 @@ public class Level implements ChunkManager, Metadatable {
                 bolt.setEffect(false);
             }
 
-            this.addLevelSoundEvent(vector, LevelSoundEventPacket.SOUND_THUNDER, -1, EntityLightning.NETWORK_ID);
-            this.addLevelSoundEvent(vector, LevelSoundEventPacket.SOUND_EXPLODE, -1, EntityLightning.NETWORK_ID);
+            this.addSound(vector, Sound.AMBIENT_WEATHER_THUNDER, -1, EntityLightning.NETWORK_ID);
+            this.addSound(vector, Sound.RANDOM_EXPLODE, -1, EntityLightning.NETWORK_ID);
         }
     }
 
@@ -1945,11 +1962,60 @@ public class Level implements ChunkManager, Metadatable {
             }
         }
 
+        if (item.getId() != 0 && item.getCount() > 0) {
+            EntityItem itemEntity = (EntityItem) Entity.createEntity("Item",
+                    this.getChunk((int) source.getX() >> 4, (int) source.getZ() >> 4, true),
+                    Entity.getDefaultNBT(source, motion, new Random().nextFloat() * 360, 0)
+                            .putShort("Health", 5)
+                            .putCompound("Item", NBTIO.putItemHelper(item))
+                            .putShort("PickupDelay", delay));
+
+            if (itemEntity != null) {
+                itemEntity.spawnToAll();
+            }
+        }
+    }
+
+    @Since("1.4.0.0-PN")
+    @Nullable
+    public EntityItem dropAndGetItem(@Nonnull Vector3 source, @Nonnull Item item) {
+        return this.dropAndGetItem(source, item, null);
+    }
+
+    @Since("1.4.0.0-PN")
+    @Nullable
+    public EntityItem dropAndGetItem(@Nonnull Vector3 source, @Nonnull Item item, @Nullable Vector3 motion) {
+        return this.dropAndGetItem(source, item, motion, 10);
+    }
+
+    @Since("1.4.0.0-PN")
+    @Nullable
+    public EntityItem dropAndGetItem(@Nonnull Vector3 source, @Nonnull Item item, @Nullable Vector3 motion, int delay) {
+        return this.dropAndGetItem(source, item, motion, false, delay);
+    }
+
+    @Since("1.4.0.0-PN")
+    @Nullable
+    public EntityItem dropAndGetItem(@Nonnull Vector3 source, @Nonnull Item item, @Nullable Vector3 motion, boolean dropAround, int delay) {
+        EntityItem itemEntity = null;
+
+        if (motion == null) {
+            if (dropAround) {
+                float f = ThreadLocalRandom.current().nextFloat() * 0.5f;
+                float f1 = ThreadLocalRandom.current().nextFloat() * ((float) Math.PI * 2);
+
+                motion = new Vector3(-MathHelper.sin(f1) * f, 0.20000000298023224, MathHelper.cos(f1) * f);
+            } else {
+                motion = new Vector3(new java.util.Random().nextDouble() * 0.2 - 0.1, 0.2,
+                        new java.util.Random().nextDouble() * 0.2 - 0.1);
+            }
+        }
+
         CompoundTag itemTag = NBTIO.putItemHelper(item);
         itemTag.setName("Item");
 
         if (item.getId() != 0 && item.getCount() > 0) {
-            EntityItem itemEntity = new EntityItem(
+             itemEntity = (EntityItem) Entity.createEntity("Item",
                     this.getChunk((int) source.getX() >> 4, (int) source.getZ() >> 4, true),
                     new CompoundTag().putList(new ListTag<DoubleTag>("Pos").add(new DoubleTag("", source.getX()))
                             .add(new DoubleTag("", source.getY())).add(new DoubleTag("", source.getZ())))
@@ -1963,8 +2029,12 @@ public class Level implements ChunkManager, Metadatable {
 
                             .putShort("Health", 5).putCompound("Item", itemTag).putShort("PickupDelay", delay));
 
-            itemEntity.spawnToAll();
+            if (itemEntity != null) {
+                itemEntity.spawnToAll();
+            }
         }
+
+        return itemEntity;
     }
 
     public Item useBreakOn(Vector3 vector) {
@@ -2026,7 +2096,7 @@ public class Level implements ChunkManager, Metadatable {
                 Tag tag = item.getNamedTagEntry("CanDestroy");
                 boolean canBreak = false;
                 if (tag instanceof ListTag) {
-                    for (Tag v : ((ListTag<Tag>) tag).getAll()) {
+                    for (Tag v : ((ListTag<? extends Tag>) tag).getAll()) {
                         if (v instanceof StringTag) {
                             Item entry = Item.fromString(((StringTag) v).data);
                             if (entry.getId() > 0 && entry.getBlock() != null && entry.getBlock().getId() == target.getId()) {
@@ -2041,27 +2111,13 @@ public class Level implements ChunkManager, Metadatable {
                 }
             }
 
-            double breakTime = target.getBreakTime(item, player);
+            double breakTime = target.calculateBreakTime(item, player);
             // this in
             // block
             // class
 
             if ((setBlockDestroy || player.isCreative()) && breakTime > 0.15) {
                 breakTime = 0.15;
-            }
-
-            if (player.hasEffect(Effect.SWIFTNESS)) {
-                breakTime *= 1 - (0.2 * (player.getEffect(Effect.SWIFTNESS).getAmplifier() + 1));
-            }
-
-            if (player.hasEffect(Effect.MINING_FATIGUE)) {
-                breakTime *= 1 - (0.3 * (player.getEffect(Effect.MINING_FATIGUE).getAmplifier() + 1));
-            }
-
-            Enchantment eff = item.getEnchantment(Enchantment.ID_EFFICIENCY);
-
-            if (eff != null && eff.getLevel() > 0) {
-                breakTime *= 1 - (0.3 * eff.getLevel());
             }
 
             breakTime -= 0.15;
@@ -2076,8 +2132,9 @@ public class Level implements ChunkManager, Metadatable {
             }
 
             if (!setBlockDestroy) {
+                boolean fastBreak = Long.sum(player.lastBreak, (long)breakTime*1000) > Long.sum(System.currentTimeMillis(), (long)1000);
                 BlockBreakEvent ev = new BlockBreakEvent(player, target, face, item, eventDrops, player.isCreative(),
-                        (Long.sum(player.lastBreak, (long)breakTime*1000)) > System.currentTimeMillis());
+                        fastBreak);
 
                 if (player.isSurvival() && !target.isBreakable(item)) {
                     ev.setCancelled();
@@ -3768,6 +3825,7 @@ public class Level implements ChunkManager, Metadatable {
         return (this.updateLCG = (this.updateLCG * 3) ^ LCG_CONSTANT);
     }
 
+    @PowerNukkitDifference(info = "Using new method to play sounds", since = "1.4.0.0-PN")
     public boolean createPortal(Block target) {
         int maxPortalSize = 23;
         final int targX = target.getFloorX();
@@ -3895,7 +3953,7 @@ public class Level implements ChunkManager, Metadatable {
                 }
             }
 
-            this.addLevelSoundEvent(target, LevelSoundEventPacket.SOUND_IGNITE);
+            this.addSound(target, Sound.FIRE_IGNITE);
             return true;
         } else if (sizeZ >= 2 && sizeZ <= maxPortalSize) {
             //start scan from 1 block above base
@@ -3978,7 +4036,7 @@ public class Level implements ChunkManager, Metadatable {
                 }
             }
 
-            this.addLevelSoundEvent(target, LevelSoundEventPacket.SOUND_IGNITE);
+            this.addSound(target, Sound.FIRE_IGNITE);
             return true;
         }
 
