@@ -71,6 +71,7 @@ import javax.annotation.Nullable;
 import java.lang.ref.SoftReference;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 
 /**
@@ -1588,6 +1589,7 @@ public class Level implements ChunkManager, Metadatable {
         return getBlock(x, y, z, 0, load);
     }
 
+    @PowerNukkitDifference(since = "1.4.0.0-PN", info = "Will automatically repair broken block states")
     public synchronized Block getBlock(int x, int y, int z, int layer, boolean load) {
         BlockState fullState;
         if (y >= 0 && y < 256) {
@@ -1607,7 +1609,12 @@ public class Level implements ChunkManager, Metadatable {
         } else {
             fullState = BlockState.AIR;
         }
-        return fullState.getBlockRepairing(this, x, y, z, layer);
+        AtomicBoolean repaired = new AtomicBoolean();
+        Block block = fullState.getBlockRepairing(this, x, y, z, layer, repair -> repaired.set(true));
+        if (repaired.get()) {
+            setBlock(x, y, z, layer, block, false, true);
+        }
+        return block;
     }
     
     private void onRepairBlockState(BlockStateRepair repair) {

@@ -90,15 +90,7 @@ public interface IBlockState {
     @Since("1.4.0.0-PN")
     @Nonnull
     default String getPersistenceName() {
-        int blockId = getBlockId();
-        String persistenceName = BlockStateRegistry.getPersistenceName(blockId);
-        if (persistenceName == null) {
-            String fallback = "blockid:"+ blockId;
-            MainLogger.getLogger().warning("The persistence name of the block id "+ blockId +" is unknown! Using "+fallback+" as an alternative!");
-            BlockStateRegistry.registerPersistenceName(blockId, fallback);
-            return fallback;
-        }
-        return persistenceName;
+        return BlockStateRegistry.getPersistenceName(getBlockId());
     }
     
     @PowerNukkitOnly
@@ -208,37 +200,68 @@ public interface IBlockState {
         return getBlock(position.getLevel(), position.getFloorX(), position.getFloorY(), position.getFloorZ(), layer);
     }
 
+
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    @Nonnull
     default Block getBlockRepairing(Block pos) {
         return getBlockRepairing(pos, pos.layer);
     }
-    
+
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    @Nonnull
     default Block getBlockRepairing(Position position, int layer) {
         return getBlockRepairing(position.level, position, layer);
     }
-    
+
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    @Nonnull
     default Block getBlockRepairing(@Nullable Level level, BlockVector3 pos, int layer) {
         return getBlockRepairing(level, pos.x, pos.y, pos.z, layer);
     }
-    
+
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    @Nonnull
     default Block getBlockRepairing(@Nullable Level level, Vector3 pos) {
         return getBlockRepairing(level, pos, 0);
     }
 
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    @Nonnull
     default Block getBlockRepairing(@Nullable Level level, Vector3 pos, int layer) {
         return getBlockRepairing(level, pos.getFloorX(), pos.getFloorY(), pos.getFloorZ());
     }
-    
+
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    @Nonnull
     default Block getBlockRepairing(@Nullable Level level, int x, int y, int z) {
         return getBlockRepairing(level, x, y, z, 0);
     }
-    
+
+    @Nonnull
     default Block getBlockRepairing(@Nullable Level level, int x, int y, int z, int layer) {
+        return getBlockRepairing(level, x, y, z, layer, null);
+    }
+
+
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    @Nonnull
+    default Block getBlockRepairing(@Nullable Level level, int x, int y, int z, int layer, @Nullable BlockStateRepairCallback callback) {
         boolean callEvent1 = !BlockStateRepairEvent.getHandlers().isEmpty();
         List<BlockStateRepair> repairs = new ArrayList<>(0);
         PluginManager manager = callEvent1? Server.getInstance().getPluginManager() : null;
         Block block = getBlock(level, x, y, z, layer, true, !callEvent1? repairs::add : repair -> {
             manager.callEvent(new BlockStateRepairEvent(repair));
             repairs.add(repair);
+            if (callback != null) {
+                callback.onRepair(repair);
+            }
         });
         
         if (!BlockStateRepairFinishEvent.getHandlers().isEmpty()) {

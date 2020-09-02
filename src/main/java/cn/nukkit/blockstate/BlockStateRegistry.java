@@ -31,12 +31,15 @@ import java.nio.ByteOrder;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @UtilityClass
 @ParametersAreNonnullByDefault
 @Log4j2
 public class BlockStateRegistry {
     public final int BIG_META_MASK = 0xFFFFFFFF;
+    private final Pattern BLOCK_ID_NAME_PATTERN = Pattern.compile("^blockid:(\\d+)$"); 
     private final Set<String> LEGACY_NAME_SET = Collections.singleton(CommonBlockProperties.LEGACY_PROPERTY_NAME);
     
     private final Registration updateBlockRegistration;
@@ -300,9 +303,16 @@ public class BlockStateRegistry {
         return updateBlockRegistration;
     }
 
-    @Nullable
+    @Nonnull
     public String getPersistenceName(int blockId) {
-        return blockIdToPersistenceName.get(blockId);
+        String persistenceName = blockIdToPersistenceName.get(blockId);
+        if (persistenceName == null) {
+            String fallback = "blockid:"+ blockId;
+            log.warn("The persistence name of the block id "+ blockId +" is unknown! Using "+fallback+" as an alternative!");
+            registerPersistenceName(blockId, fallback);
+            return fallback;
+        }
+        return persistenceName;
     }
 
     public void registerPersistenceName(int blockId, String persistenceName) {
@@ -406,7 +416,19 @@ public class BlockStateRegistry {
     
     @Nullable
     public Integer getBlockId(String persistenceName) {
-        return persistenceNameToBlockId.get(persistenceName);
+        Integer blockId = persistenceNameToBlockId.get(persistenceName);
+        if (blockId != null) {
+            return blockId;
+        }
+        
+        Matcher matcher = BLOCK_ID_NAME_PATTERN.matcher(persistenceName);
+        if (matcher.matches()) {
+            try {
+                return Integer.parseInt(matcher.group(1));
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return null;
     }
     
     @AllArgsConstructor

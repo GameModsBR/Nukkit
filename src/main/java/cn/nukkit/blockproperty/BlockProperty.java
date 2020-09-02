@@ -45,7 +45,7 @@ public abstract class BlockProperty<T extends Serializable> implements Serializa
     }
 
     private BigInteger computeHugeRightMask(int bitOffset) {
-        return BigInteger.ONE.shiftLeft(bitSize).subtract(BigInteger.ONE).shiftLeft(bitOffset);
+        return BigInteger.ONE.shiftLeft(bitOffset).subtract(BigInteger.ONE);
     }
 
     /**
@@ -86,7 +86,7 @@ public abstract class BlockProperty<T extends Serializable> implements Serializa
         Preconditions.checkArgument(0 < maskBits, "The bit offset %s plus the bit size %s causes memory overflow (huge)", bitOffset, bitSize);
         
         BigInteger rightMask = computeHugeRightMask(bitOffset);
-        BigInteger leftMask = BigInteger.ONE.negate().shiftLeft(maskBits);
+        BigInteger leftMask = BigInteger.valueOf(-1).shiftLeft(maskBits);
         
         return rightMask.not().andNot(leftMask);
     }
