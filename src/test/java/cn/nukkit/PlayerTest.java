@@ -6,6 +6,7 @@ import cn.nukkit.dispenser.DispenseBehaviorRegister;
 import cn.nukkit.entity.Attribute;
 import cn.nukkit.entity.data.Skin;
 import cn.nukkit.event.entity.EntityDamageEvent;
+import cn.nukkit.inventory.PlayerInventory;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemID;
 import cn.nukkit.item.enchantment.Enchantment;
@@ -15,6 +16,7 @@ import cn.nukkit.level.Position;
 import cn.nukkit.level.biome.EnumBiome;
 import cn.nukkit.level.format.LevelProvider;
 import cn.nukkit.level.format.anvil.Chunk;
+import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.network.Network;
 import cn.nukkit.network.SourceInterface;
 import cn.nukkit.network.protocol.InventoryTransactionPacket;
@@ -43,6 +45,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -102,7 +105,68 @@ class PlayerTest {
     
     @Test
     void armorDamage() {
-        player.attack(new EntityDamageEvent(player, EntityDamageEvent.DamageCause.FALL, 2));
+        player.attack(new EntityDamageEvent(player, EntityDamageEvent.DamageCause.FALL, 1));
+        PlayerInventory inventory = player.getInventory();
+        
+        ////// Block in armor content ////////
+        inventory.setArmorContents(new Item[]{
+                Item.getBlock(BlockID.WOOL),
+                Item.getBlock(BlockID.WOOL, 1),
+                Item.getBlock(BlockID.WOOL, 2),
+                Item.getBlock(BlockID.WOOL, 3)
+        });
+        for (int i = 0; i < 100; i++) {
+            player.setHealth(20);
+            player.attack(new EntityDamageEvent(player, EntityDamageEvent.DamageCause.FALL, 1));
+            player.entityBaseTick(20);
+        }
+        assertEquals(Arrays.asList(
+                Item.getBlock(BlockID.WOOL),
+                Item.getBlock(BlockID.WOOL, 1),
+                Item.getBlock(BlockID.WOOL, 2),
+                Item.getBlock(BlockID.WOOL, 3)
+        ), Arrays.asList(inventory.getArmorContents()));
+
+        ////// Valid armor in armor content ///////
+        inventory.setArmorContents(new Item[]{
+                Item.get(ItemID.LEATHER_CAP),
+                Item.get(ItemID.LEATHER_TUNIC),
+                Item.get(ItemID.LEATHER_PANTS),
+                Item.get(ItemID.LEATHER_BOOTS)
+        });
+        for (int i = 0; i < 100; i++) {
+            player.setHealth(20);
+            player.attack(new EntityDamageEvent(player, EntityDamageEvent.DamageCause.FALL, 1));
+            player.entityBaseTick(20);
+        }
+        assertEquals(Arrays.asList(
+                Item.getBlock(BlockID.AIR),
+                Item.getBlock(BlockID.AIR),
+                Item.getBlock(BlockID.AIR),
+                Item.getBlock(BlockID.AIR)
+        ), Arrays.asList(inventory.getArmorContents()));
+
+        ////// Unbreakable armor in armor content ///////
+        List<Item> items = Arrays.asList(
+                Item.get(ItemID.LEATHER_CAP),
+                Item.get(ItemID.LEATHER_TUNIC),
+                Item.get(ItemID.LEATHER_PANTS),
+                Item.get(ItemID.LEATHER_BOOTS)
+        );
+        items.forEach(item -> item.setNamedTag(new CompoundTag().putBoolean("Unbreakable", true)));
+        Item[] array = new Item[items.size()];
+        for (int i = 0; i < items.size(); i++) {
+            array[i] = items.get(i).clone();
+        }
+        inventory.setArmorContents(array);
+        for (int i = 0; i < 100; i++) {
+            player.setHealth(20);
+            player.attack(new EntityDamageEvent(player, EntityDamageEvent.DamageCause.FALL, 1));
+            player.entityBaseTick(20);
+        }
+        assertEquals(ItemID.LEATHER_CAP, items.get(0).getId());
+        assertTrue(items.get(2).isUnbreakable());
+        assertEquals(items, Arrays.asList(inventory.getArmorContents()));
     }
 
     @Test
