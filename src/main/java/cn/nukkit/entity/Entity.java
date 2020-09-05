@@ -1203,7 +1203,7 @@ public abstract class Entity extends Location implements Metadatable {
         setLastDamageCause(source);
         float health = getHealth() - source.getFinalDamage();
         if (health < 1 && this.isPlayer) {
-            if (source.getCause() != DamageCause.VOID && && cause.getCause() != DamageCause.SUICIDE) {
+            if (source.getCause() != DamageCause.VOID && source.getCause() != DamageCause.SUICIDE) {
                 Player p = (Player) this;
                 PlayerOffhandInventory offhandInventory = p.getOffhandInventory();
                 PlayerInventory playerInventory = p.getInventory();
