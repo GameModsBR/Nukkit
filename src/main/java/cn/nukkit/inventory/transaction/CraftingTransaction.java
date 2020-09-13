@@ -57,16 +57,16 @@ public class CraftingTransaction extends InventoryTransaction {
     }
     
     public void setInput(Item item) {
-        if (inputs.size() < gridSize * gridSize) {
-            for (Item existingInput : this.inputs) {
-                if (existingInput.equals(item, item.hasMeta(), item.hasCompoundTag())) {
-                    existingInput.setCount(existingInput.getCount() + item.getCount());
-                    return;
-                }
+        for (Item existingInput : this.inputs) {
+            if (existingInput.equals(item, item.hasMeta(), item.hasCompoundTag())) {
+                existingInput.setCount(existingInput.getCount() + item.getCount());
+                return;
             }
-            inputs.add(item.clone());
-        } else {
-            throw new RuntimeException("Input list is full can't add " + item);
+            if (inputs.size() < gridSize * gridSize) {
+                inputs.add(item.clone());
+            } else {
+                throw new RuntimeException("Input list is full can't add " + item);
+            }
         }
     }
 
@@ -75,10 +75,16 @@ public class CraftingTransaction extends InventoryTransaction {
     }
 
     public void setExtraOutput(Item item) {
-        if (secondaryOutputs.size() < gridSize * gridSize) {
-            secondaryOutputs.add(item.clone());
-        } else {
-            throw new RuntimeException("Output list is full can't add " + item);
+        for(Item existingOutput : this.secondaryOutputs){
+            if (existingOutput.equals(item, item.hasMeta(), item.hasCompoundTag())) {
+                existingOutput.setCount(existingOutput.getCount() + item.getCount());
+                return;
+            }
+            if (secondaryOutputs.size() < gridSize * gridSize) {
+                secondaryOutputs.add(item.clone());
+            } else {
+                throw new RuntimeException("Output list is full can't add " + item);
+            }
         }
     }
 
