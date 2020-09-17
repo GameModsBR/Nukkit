@@ -66,7 +66,7 @@ class LevelTest {
     @Mock
     DB db;
 
-    File dataPath = FileUtils.createTempDir("powernukkit-player-test-data");
+    File dataPath = FileUtils.createTempDir("powernukkit-level-test-data");
 
     @InjectMocks
     Server server = mock(Server.class, withSettings()

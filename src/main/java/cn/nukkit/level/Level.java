@@ -148,6 +148,7 @@ public class Level implements ChunkManager, Metadatable {
         randomTickBlocks[BlockID.BAMBOO_SAPLING] = true;
         randomTickBlocks[BlockID.CRIMSON_NYLIUM] = true;
         randomTickBlocks[BlockID.WARPED_NYLIUM] = true;
+        randomTickBlocks[BlockID.TWISTING_VINES] = true;
     }
     
     @PowerNukkitOnly
@@ -1733,7 +1734,7 @@ public class Level implements ChunkManager, Metadatable {
                     int lcx = x & 0xF;
                     int lcz = z & 0xF;
                     int oldLevel = chunk.getBlockLight(lcx, y, lcz);
-                    int newLevel = Block.fullLight[chunk.getFullBlock(lcx, y, lcz)];
+                    int newLevel = chunk.getBlockState(lcx, y, lcz).getBlock(this, x, y, z, 0, true).getLightLevel();
                     if (oldLevel != newLevel) {
                         this.setBlockLightAt(x, y, z, newLevel);
                         if (newLevel < oldLevel) {
@@ -2223,6 +2224,9 @@ public class Level implements ChunkManager, Metadatable {
 
         item.useOn(target);
         if (item.isTool() && item.getDamage() >= item.getMaxDurability()) {
+            if (player != null) {
+                addSound(player, Sound.RANDOM_BREAK);
+            }
             item = new ItemBlock(Block.get(BlockID.AIR), 0, 0);
         }
 
@@ -2253,8 +2257,28 @@ public class Level implements ChunkManager, Metadatable {
     }
 
     public void dropExpOrb(Vector3 source, int exp, Vector3 motion, int delay) {
+        dropExpOrbAndGetEntities(source, exp, motion, delay);
+    }
+
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public List<EntityXPOrb> dropExpOrbAndGetEntities(Vector3 source, int exp) {
+        return dropExpOrbAndGetEntities(source, exp, null);
+    }
+
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public List<EntityXPOrb> dropExpOrbAndGetEntities(Vector3 source, int exp, Vector3 motion) {
+        return dropExpOrbAndGetEntities(source, exp, motion, 10);
+    }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public List<EntityXPOrb> dropExpOrbAndGetEntities(Vector3 source, int exp, Vector3 motion, int delay) {
         Random rand = ThreadLocalRandom.current();
-        for (int split : EntityXPOrb.splitIntoOrbSizes(exp)) {
+        List<Integer> drops = EntityXPOrb.splitIntoOrbSizes(exp);
+        List<EntityXPOrb> entities = new ArrayList<>(drops.size());
+        for (int split : drops) {
             CompoundTag nbt = Entity.getDefaultNBT(source, motion == null ? new Vector3(
                     (rand.nextDouble() * 0.2 - 0.1) * 2,
                     rand.nextDouble() * 0.4,
@@ -2264,11 +2288,13 @@ public class Level implements ChunkManager, Metadatable {
             nbt.putShort("Value", split);
             nbt.putShort("PickupDelay", delay);
 
-            Entity entity = Entity.createEntity("XpOrb", this.getChunk(source.getChunkX(), source.getChunkZ()), nbt);
+            EntityXPOrb entity = (EntityXPOrb) Entity.createEntity("XpOrb", this.getChunk(source.getChunkX(), source.getChunkZ()), nbt);
             if (entity != null) {
+                entities.add(entity);
                 entity.spawnToAll();
             }
         }
+        return entities;
     }
 
     public Item useItemOn(Vector3 vector, Item item, BlockFace face, float fx, float fy, float fz) {
@@ -2320,6 +2346,7 @@ public class Level implements ChunkManager, Metadatable {
                 target.onUpdate(BLOCK_UPDATE_TOUCH);
                 if ((!player.isSneaking() || player.getInventory().getItemInHand().isNull()) && target.canBeActivated() && target.onActivate(item, player)) {
                     if (item.isTool() && item.getDamage() >= item.getMaxDurability()) {
+                        addSound(player, Sound.RANDOM_BREAK);
                         item = new ItemBlock(Block.get(BlockID.AIR), 0, 0);
                     }
                     return item;
@@ -2613,7 +2640,7 @@ public class Level implements ChunkManager, Metadatable {
 
     @Override
     public BlockState getBlockStateAt(int x, int y, int z, int layer) {
-        return getChunk(x >> 4, z >> 4, true).getBlockStateAt(x, y, z, layer);
+        return getChunk(x >> 4, z >> 4, true).getBlockStateAt(x & 0x0f, y & 0xff, z & 0x0f, layer);
     }
 
     @Override
