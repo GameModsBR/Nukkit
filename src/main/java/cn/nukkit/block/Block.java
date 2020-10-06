@@ -1189,17 +1189,11 @@ public abstract class Block extends Position implements Metadatable, Cloneable, 
         if (this.getId() < 0 || this.getId() > list.length) { //Unknown blocks
             return Item.EMPTY_ARRAY;
         } else if(canHarvestWithHand() || canHarvest(item)) {
-            getNormalDrops();
+            return new Item[]{
+                    this.toItem()
+            };
         }
         return Item.EMPTY_ARRAY;
-    }
-    
-    @PowerNukkitOnly
-    @Since("1.4.0.0-PN")
-    protected Item[] getNormalDrops() {
-        return new Item[]{
-                this.toItem()
-        };
     }
 
     private double toolBreakTimeBonus0(Item item) {
