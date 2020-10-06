@@ -27,7 +27,6 @@ import cn.nukkit.potion.Effect;
 import cn.nukkit.utils.BlockIterator;
 import cn.nukkit.utils.Utils;
 import co.aikar.timings.Timings;
-import io.netty.util.internal.EmptyArrays;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -324,7 +323,7 @@ public abstract class EntityLiving extends Entity implements EntityDamageable {
 
     @Deprecated
     public Block[] getLineOfSight(int maxDistance, int maxLength, Map<Integer, Object> transparent) {
-        return this.getLineOfSight(maxDistance, maxLength, transparent.keySet().toArray(EmptyArrays.EMPTY));
+        return this.getLineOfSight(maxDistance, maxLength, transparent.keySet().toArray(Utils.EMPTY_INTEGERS));
     }
 
     public Block[] getLineOfSight(int maxDistance, int maxLength, Integer[] transparent) {
