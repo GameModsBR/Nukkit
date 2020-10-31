@@ -1,7 +1,9 @@
 package cn.nukkit.entity.item;
 
 import cn.nukkit.block.Block;
+import cn.nukkit.block.BlockID;
 import cn.nukkit.block.BlockLava;
+import cn.nukkit.blockstate.BlockState;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.data.IntEntityData;
 import cn.nukkit.event.entity.EntityBlockChangeEvent;
@@ -147,12 +149,13 @@ public class EntityFallingBlock extends Entity {
             if (onGround) {
                 close();
                 Block block = level.getBlock(pos);
-                if (block.getId() > 0 && block.isTransparent() && !block.canBeReplaced()) {
+                if (block.getId() > 0 && block.isTransparent() && !block.canBeReplaced()
+                        && (block.getId() != BlockID.SCAFFOLDING && blockId != BlockID.SCAFFOLDING)) {
                     if (this.level.getGameRules().getBoolean(GameRule.DO_ENTITY_DROPS)) {
                         getLevel().dropItem(this, Block.get(this.getBlock(), this.getDamage()).toItem());
                     }
                 } else {
-                    EntityBlockChangeEvent event = new EntityBlockChangeEvent(this, block, Block.get(getBlock(), getDamage()));
+                    EntityBlockChangeEvent event = new EntityBlockChangeEvent(this, block, BlockState.of(getBlock(), getDamage()).getBlock());
                     server.getPluginManager().callEvent(event);
                     if (!event.isCancelled()) {
                         getLevel().setBlock(pos, event.getTo(), true);
