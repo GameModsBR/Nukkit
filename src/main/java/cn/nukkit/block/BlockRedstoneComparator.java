@@ -157,7 +157,12 @@ public abstract class BlockRedstoneComparator extends BlockRedstoneDiode impleme
         }
 
         int output = this.calculateOutput();
-        BlockEntityComparator blockEntityComparator = getOrCreateBlockEntity();
+        // We can't use getOrCreateBlockEntity(), because the update method is called on block place,
+        // before the "real" BlockEntity is set. That means, if we'd use the other method here,
+        // it would create two BlockEntities.
+        BlockEntityComparator blockEntityComparator = getBlockEntity();
+        if (blockEntityComparator == null)
+            return;
 
         int currentOutput = blockEntityComparator.getOutputSignal();
         blockEntityComparator.setOutputSignal(output);
