@@ -179,7 +179,7 @@ public class Level implements ChunkManager, Metadatable {
 
     public float skyLightSubtracted;
 
-    private final String folderName;
+    private String folderName;
 
     private Vector3 mutableBlock;
 
@@ -215,17 +215,17 @@ public class Level implements ChunkManager, Metadatable {
 
     private BlockMetadataStore blockMetadata;
 
-    private final boolean useSections;
+    private boolean useSections;
 
     private Position temporalPosition;
-    private final Vector3 temporalVector;
+    private Vector3 temporalVector;
 
     public int sleepTicks = 0;
 
-    private final int chunkTickRadius;
+    private int chunkTickRadius;
     private final Long2IntMap chunkTickList = new Long2IntOpenHashMap();
-    private final int chunksPerTicks;
-    private final boolean clearChunksOnTick;
+    private int chunksPerTicks;
+    private boolean clearChunksOnTick;
 
     private int updateLCG = ThreadLocalRandom.current().nextInt();
 
@@ -237,8 +237,8 @@ public class Level implements ChunkManager, Metadatable {
     public int tickRateTime = 0;
     public int tickRateCounter = 0;
 
-    private final Class<? extends Generator> generatorClass;
-    private final IterableThreadLocal<Generator> generators = new IterableThreadLocal<Generator>() {
+    private Class<? extends Generator> generatorClass;
+    private IterableThreadLocal<Generator> generators = new IterableThreadLocal<Generator>() {
         @Override
         public Generator init() {
             try {
@@ -1812,7 +1812,7 @@ public class Level implements ChunkManager, Metadatable {
         }
     }
 
-    private final Map<Long, Map<Character, Object>> lightQueue = new ConcurrentHashMap<>(8, 0.9f, 1);
+    private Map<Long, Map<Character, Object>> lightQueue = new ConcurrentHashMap<>(8, 0.9f, 1);
 
     public void addLightUpdate(int x, int y, int z) {
         long index = chunkHash(x >> 4, z >> 4);
@@ -2480,8 +2480,8 @@ public class Level implements ChunkManager, Metadatable {
         return this.getNearbyEntities(bb, null);
     }
 
-    private static final Entity[] EMPTY_ENTITY_ARR = new Entity[0];
-    private static final Entity[] ENTITY_BUFFER = new Entity[512];
+    private static Entity[] EMPTY_ENTITY_ARR = new Entity[0];
+    private static Entity[] ENTITY_BUFFER = new Entity[512];
 
     public Entity[] getNearbyEntities(AxisAlignedBB bb, Entity entity) {
         return getNearbyEntities(bb, entity, false);
