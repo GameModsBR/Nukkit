@@ -2109,6 +2109,9 @@ public abstract class Entity extends Location implements Metadatable {
     }
 
     protected void checkGroundState(double movX, double movY, double movZ, double dx, double dy, double dz) {
+        if (onGround && movX == 0 && movY == 0 && movZ == 0 && dx == 0 && dy == 0 && dz == 0) {
+            return;
+        }
         this.isCollidedVertically = movY != dy;
         this.isCollidedHorizontally = (movX != dx || movZ != dz);
         this.isCollided = (this.isCollidedHorizontally || this.isCollidedVertically);
