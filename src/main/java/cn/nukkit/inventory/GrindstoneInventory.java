@@ -109,7 +109,6 @@ public class GrindstoneInventory extends FakeBlockUIComponent {
             CompoundTag tag = result.getNamedTag();
             if (tag == null) tag = new CompoundTag(); 
             tag.remove("ench");
-            tag.remove("RepairCost");
             result.setCompoundTag(tag);
             if (!secondItem.isNull()) {
                 int first = firstItem.getMaxDurability() - firstItem.getDamage();
