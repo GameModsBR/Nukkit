@@ -11,15 +11,14 @@ import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.utils.ChunkException;
 import cn.nukkit.utils.LevelException;
+import cn.nukkit.utils.Utils;
 import com.google.common.collect.ImmutableMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
+import lombok.extern.log4j.Log4j2;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.ByteOrder;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,6 +28,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * author: MagicDroidX
  * Nukkit Project
  */
+@Log4j2
 public abstract class BaseLevelProvider implements LevelProvider {
     protected Level level;
 
@@ -49,11 +49,36 @@ public abstract class BaseLevelProvider implements LevelProvider {
     public BaseLevelProvider(Level level, String path) throws IOException {
         this.level = level;
         this.path = path;
-        File file_path = new File(this.path);
-        if (!file_path.exists()) {
-            file_path.mkdirs();
+        File filePath = new File(this.path);
+        if (!filePath.exists() && !filePath.mkdirs()) {
+            throw new LevelException("Could not create the directory "+filePath);
         }
-        CompoundTag levelData = NBTIO.readCompressed(new FileInputStream(new File(this.getPath() + "level.dat")), ByteOrder.BIG_ENDIAN);
+
+        CompoundTag levelData;
+        File levelDatFile = new File(getPath(), "level.dat");
+        try (FileInputStream fos = new FileInputStream(levelDatFile); BufferedInputStream input = new BufferedInputStream(fos)) {
+            levelData = NBTIO.readCompressed(input, ByteOrder.BIG_ENDIAN);;
+        } catch (Exception e) {
+            log.fatal("Failed to load the level.dat file at "+levelDatFile.getAbsolutePath()+", attempting to load level.dat_old instead!");
+            try {
+                File old = new File(getPath(), "level.dat_old");
+                if (!old.isFile()) {
+                    log.fatal("The file "+old.getAbsolutePath()+" does not exists!");
+                    throw new FileNotFoundException("The file "+old.getAbsolutePath()+" does not exists!");
+                }
+                try (FileInputStream fos = new FileInputStream(old); BufferedInputStream input = new BufferedInputStream(fos)) {
+                    levelData = NBTIO.readCompressed(input, ByteOrder.BIG_ENDIAN);
+                } catch (Exception e2) {
+                    log.fatal("Failed to load the level.dat_old file at "+levelDatFile.getAbsolutePath());
+                    throw e2;
+                }
+            } catch (Exception e2) {
+                LevelException ex = new LevelException("Could not load the level.dat and the level.dat_old files. You might need to restore them from a backup!", e);
+                ex.addSuppressed(e2);
+                throw ex;
+            }
+        }
+        
         if (levelData.get("Data") instanceof CompoundTag) {
             this.levelData = levelData.getCompound("Data");
         } else {
@@ -303,10 +328,18 @@ public abstract class BaseLevelProvider implements LevelProvider {
 
     @Override
     public void saveLevelData() {
+        File levelDataFile = new File(getPath(), "level.dat");
         try {
-            NBTIO.writeGZIPCompressed(new CompoundTag().putCompound("Data", this.levelData), new FileOutputStream(this.getPath() + "level.dat"));
+            Utils.safeWrite(levelDataFile, file -> {
+                try(FileOutputStream fos = new FileOutputStream(file); BufferedOutputStream out = new BufferedOutputStream(fos)) {
+                    NBTIO.writeGZIPCompressed(new CompoundTag().putCompound("Data", this.levelData), out);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            });
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.fatal("Failed to save the level.dat file at "+levelDataFile.getAbsolutePath());
+            throw new UncheckedIOException(e);
         }
     }
 
