@@ -1,5 +1,6 @@
 package cn.nukkit.level.format.generic;
 
+import cn.nukkit.Nukkit;
 import cn.nukkit.Server;
 import cn.nukkit.level.GameRules;
 import cn.nukkit.level.Level;
@@ -9,6 +10,8 @@ import cn.nukkit.level.generator.Generator;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
+import cn.nukkit.nbt.tag.ListTag;
+import cn.nukkit.nbt.tag.StringTag;
 import cn.nukkit.utils.ChunkException;
 import cn.nukkit.utils.LevelException;
 import cn.nukkit.utils.Utils;
@@ -92,6 +95,8 @@ public abstract class BaseLevelProvider implements LevelProvider {
         if (!this.levelData.contains("generatorOptions")) {
             this.levelData.putString("generatorOptions", "");
         }
+        
+        this.levelData.putList(new ListTag<>("ServerBrand").add(new StringTag("", Nukkit.CODENAME)));
 
         this.spawn = new Vector3(this.levelData.getInt("SpawnX"), this.levelData.getInt("SpawnY"), this.levelData.getInt("SpawnZ"));
     }
