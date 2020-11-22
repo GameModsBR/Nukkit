@@ -20,6 +20,9 @@ Click the link above to see the future.
 - [#778] _Alpha Bug_: Compatibility fix: Unable to change MobPlugin spawner with eggs
 - [#778] Unable to get `minecraft:mob_spawner` with `/give Nick mob_spawner`
 
+### Changed
+- [#776] Grindstone won't reset the repair cost anymore
+
 ## 1.3.2.0-PN-ALPHA.2 - 2020-11-21
 
 ### Fixes
