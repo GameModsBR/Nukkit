@@ -6,6 +6,7 @@ import cn.nukkit.api.DeprecationDetails;
 import cn.nukkit.api.PowerNukkitOnly;
 import cn.nukkit.api.Since;
 import cn.nukkit.event.HandlerList;
+import cn.nukkit.utils.LoginChainData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +28,7 @@ public class PlayerAsyncPreLoginEvent extends PlayerEvent {
 
     private final String name;
     private final UUID uuid;
-    private final String xuid;
+    private final LoginChainData chainData;
     private final String address;
     private final int port;
 
@@ -44,10 +45,10 @@ public class PlayerAsyncPreLoginEvent extends PlayerEvent {
     }
     
     @Since("1.3.2.0-PN")
-    public PlayerAsyncPreLoginEvent(String name, UUID uuid, String xuid, String address, int port) {
+    public PlayerAsyncPreLoginEvent(String name, UUID uuid, LoginChainData chainData, String address, int port) {
         this.name = name;
         this.uuid = uuid;
-        this.xuid = xuid;
+        this.chainData = chainData;
         this.address = address;
         this.port = port;
     }
@@ -66,8 +67,8 @@ public class PlayerAsyncPreLoginEvent extends PlayerEvent {
     }
 
     @Since("1.3.2.0-PN")
-    public String getXuid() {
-        return xuid;
+    public LoginChainData getChainData() {
+        return chainData;
     }
 
     public String getAddress() {
