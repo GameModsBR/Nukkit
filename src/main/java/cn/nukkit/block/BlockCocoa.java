@@ -5,6 +5,7 @@ import cn.nukkit.Server;
 import cn.nukkit.api.PowerNukkitOnly;
 import cn.nukkit.event.block.BlockGrowEvent;
 import cn.nukkit.item.Item;
+import cn.nukkit.item.ItemCocoaBeans;
 import cn.nukkit.item.ItemID;
 import cn.nukkit.item.ItemTool;
 import cn.nukkit.level.Level;
@@ -231,8 +232,12 @@ public class BlockCocoa extends BlockTransparentMeta implements Faceable {
 
     @Override
     public Item[] getDrops(Item item) {
+        int count = 1;
+        if (this.getDamage() >= 8) {
+            count += 1 + ThreadLocalRandom.current().nextInt(1);
+        }
         return new Item[]{
-                Item.get(ItemID.COCOA_BEANS, this.getDamage() >= 8 ? 3 : 1)
+                new ItemCocoaBeans(0, count)
         };
     }
 
