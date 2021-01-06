@@ -42,6 +42,7 @@ public abstract class BlockPistonBase extends BlockSolidMeta implements Redstone
 
     public boolean sticky;
 
+    @SuppressWarnings("unused")
     public BlockPistonBase() {
         this(0);
     }
@@ -253,6 +254,7 @@ public abstract class BlockPistonBase extends BlockSolidMeta implements Redstone
         return this.isGettingPower();
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean doMove(boolean extending) {
         BlockFace direction = getBlockFace();
         BlocksCalculator calculator = new BlocksCalculator(level, this, getBlockFace(), extending, sticky);
@@ -349,7 +351,8 @@ public abstract class BlockPistonBase extends BlockSolidMeta implements Redstone
                         block.getY() <= 255 && (face != BlockFace.UP || block.getY() != 255)
         ) {
             if (extending && !block.canBePushed() || !extending && !block.canBePulled()) {
-                return false;
+                // behavior of glazed terracotta is handled in addBlockLine
+                return block.canBePushed() && !block.canBePulled();
             }
 
             if (block.breaksWhenMoved()) {
@@ -363,8 +366,21 @@ public abstract class BlockPistonBase extends BlockSolidMeta implements Redstone
         return false;
     }
 
-    public class BlocksCalculator {
+    @Override
+    public Item toItem() {
+        return new ItemBlock(this, 0);
+    }
 
+    @Override
+    public BlockFace getBlockFace() {
+        BlockFace face = BlockFace.fromIndex(this.getDamage());
+
+        return face.getHorizontalIndex() >= 0 ? face.getOpposite() : face;
+    }
+
+    public static class BlocksCalculator {
+
+        // piston position
         private final Vector3 pistonPos;
         private Vector3 armPos;
         private final Block blockToMove;
@@ -378,16 +394,18 @@ public abstract class BlockPistonBase extends BlockSolidMeta implements Redstone
         /**
          * @param level Unused, needed for compatibility with Cloudburst Nukkit plugins
          */
+        @SuppressWarnings("unused")
         public BlocksCalculator(Level level, Block block, BlockFace facing, boolean extending) {
             this(level, block, facing, extending, false);
         }
 
         /**
+         * Class containing methods, to calculate, which blocks should be moved by the piston
          * @param level Unused, needed for compatibility with Cloudburst Nukkit plugins
          */
         @PowerNukkitOnly
         @Since("1.4.0.0-PN")
-        public BlocksCalculator(Level level, Block pos, BlockFace face, boolean extending, boolean sticky) {
+        public BlocksCalculator(@SuppressWarnings("unused") Level level, Block pos, BlockFace face, boolean extending, boolean sticky) {
             this.pistonPos = pos.getLocation();
             this.extending = extending;
             this.sticky = sticky;
@@ -409,7 +427,11 @@ public abstract class BlockPistonBase extends BlockSolidMeta implements Redstone
             }
         }
 
+        /**
+         * Can the piston move?
+         */
         public boolean canMove() {
+            // normal piston retract always works
             if (!sticky && !extending) {
                 return true;
             }
@@ -434,6 +456,8 @@ public abstract class BlockPistonBase extends BlockSolidMeta implements Redstone
                 return false;
             }
 
+            // can't be replaced with enhanced for, would produce a ConcurrentModificationException
+            //noinspection ForLoopReplaceableByForEach
             for (int i = 0; i < this.toMove.size(); ++i) {
                 Block b = this.toMove.get(i);
 
@@ -446,17 +470,32 @@ public abstract class BlockPistonBase extends BlockSolidMeta implements Redstone
             return true;
         }
 
+        /**
+         * Add a line of blocks which should be moved
+         * @param origin The first block that should be checked
+         * @param from The block "behind" the origin
+         * @param mainBlockLine Is this the blockline directly at the piston or from slime/honey blocks?
+         */
         @PowerNukkitDifference(info = "Fix honeyblock on piston facing direction" +
                 "+ fix block pushing limit for slime/honey blocks" +
                 "+ fix that honey/slime blocks could be retracted when the piston retracts in facing direction",
                 since = "1.4.0.0-PN")
+        @SuppressWarnings("BooleanMethodIsAlwaysInverted")
         private boolean addBlockLine(Block origin, Block from, boolean mainBlockLine) {
             Block block = origin.clone();
+
+            // this is for the behavior of glazed terracotta, for example
+            if (block.canBePushed() && !block.canBePulled()) {
+                if (from.getId() != AIR && canPush(from, this.moveDirection, false, extending) && !from.equals(this.pistonPos)) {
+                    return true;
+                }
+            }
 
             if (block.getId() == AIR) {
                 return true;
             }
 
+            // slime and honey can't move each other, except there is no possibility to stay at the place
             if (!mainBlockLine && (block.getId() == SLIME_BLOCK && from.getId() == HONEY_BLOCK
                     || block.getId() == HONEY_BLOCK && from.getId() == SLIME_BLOCK)) {
                 return true;
@@ -466,14 +505,17 @@ public abstract class BlockPistonBase extends BlockSolidMeta implements Redstone
                 return true;
             }
 
+            // don't move the piston itself
             if (origin.equals(this.pistonPos)) {
                 return true;
             }
 
+            // already added from another line
             if (this.toMove.contains(origin)) {
                 return true;
             }
 
+            // push limit
             if (this.toMove.size() >= 12) {
                 return false;
             }
@@ -487,20 +529,22 @@ public abstract class BlockPistonBase extends BlockSolidMeta implements Redstone
                 Block oldBlock = block.clone();
                 block = origin.getSide(this.moveDirection.getOpposite(), count);
 
-                if (!extending && (block.getId() == SLIME_BLOCK && oldBlock.getId() == HONEY_BLOCK
-                        || block.getId() == HONEY_BLOCK && oldBlock.getId() == SLIME_BLOCK)) {
+                // slime and honey can't move each other, except there is no possibility to stay at the place
+                if ((!extending || oldBlock.getId() != AIR && canPush(oldBlock, this.moveDirection, false, true) && !oldBlock.equals(this.pistonPos))
+                        && (block.getId() == SLIME_BLOCK && oldBlock.getId() == HONEY_BLOCK || block.getId() == HONEY_BLOCK && oldBlock.getId() == SLIME_BLOCK)) {
                     break;
                 }
 
-                if (block.getId() == AIR || !canPush(block, this.moveDirection, false, extending) || block.equals(this.pistonPos)) {
+                if (block.canBePushed() && !block.canBePulled()) {
+                    // this is for the behavior of glazed terracotta, for example
+                    if (oldBlock.getId() != AIR && canPush(oldBlock, this.moveDirection, false, extending) && !oldBlock.equals(this.pistonPos)) {
+                        break;
+                    }
+                } else if (block.getId() == AIR || !canPush(block, this.moveDirection, false, extending) || block.equals(this.pistonPos)) {
                     break;
                 }
 
-                if (block.breaksWhenMoved() && block.sticksToPiston()) {
-                    this.toDestroy.add(block);
-                    break;
-                }
-
+                // push limit
                 if (count + this.toMove.size() > 12) {
                     return false;
                 }
@@ -509,6 +553,7 @@ public abstract class BlockPistonBase extends BlockSolidMeta implements Redstone
                 sticked.add(block);
             }
 
+            // add the sticked blocks to the blocks, which have to be moved
             int stickedCount = sticked.size();
 
             if (stickedCount > 0) {
@@ -517,6 +562,7 @@ public abstract class BlockPistonBase extends BlockSolidMeta implements Redstone
 
             int step = 1;
 
+            // adding normal blocks
             while (true) {
                 Block nextBlock = origin.getSide(this.moveDirection, step);
                 int index = this.toMove.indexOf(nextBlock);
@@ -527,6 +573,7 @@ public abstract class BlockPistonBase extends BlockSolidMeta implements Redstone
                     for (int i = 0; i <= index + stickedCount; ++i) {
                         Block b = this.toMove.get(i);
 
+                        // add blocks at sides of slime/honey
                         if ((b.getId() == SLIME_BLOCK || b.getId() == HONEY_BLOCK) && !this.addBranchingBlocks(b)) {
                             return false;
                         }
@@ -548,6 +595,7 @@ public abstract class BlockPistonBase extends BlockSolidMeta implements Redstone
                     return true;
                 }
 
+                // push limit
                 if (this.toMove.size() >= 12) {
                     return false;
                 }
@@ -568,6 +616,10 @@ public abstract class BlockPistonBase extends BlockSolidMeta implements Redstone
             this.toMove.addAll(list2);
         }
 
+        /**
+         * Add blocks at sides of slime/honey
+         */
+        @SuppressWarnings("BooleanMethodIsAlwaysInverted")
         private boolean addBranchingBlocks(Block block) {
             for (BlockFace face : BlockFace.values()) {
                 if (face.getAxis() != this.moveDirection.getAxis() && !this.addBlockLine(block.getSide(face), block, false)) {
@@ -578,24 +630,18 @@ public abstract class BlockPistonBase extends BlockSolidMeta implements Redstone
             return true;
         }
 
+        /**
+         * @return all the blocks, which have to be moved
+         */
         public List<Block> getBlocksToMove() {
             return this.toMove;
         }
 
+        /**
+         * @return all the blocks, which have to be destroyed
+         */
         public List<Block> getBlocksToDestroy() {
             return this.toDestroy;
         }
-    }
-
-    @Override
-    public Item toItem() {
-        return new ItemBlock(this, 0);
-    }
-
-    @Override
-    public BlockFace getBlockFace() {
-        BlockFace face = BlockFace.fromIndex(this.getDamage());
-
-        return face.getHorizontalIndex() >= 0 ? face.getOpposite() : face;
     }
 }
