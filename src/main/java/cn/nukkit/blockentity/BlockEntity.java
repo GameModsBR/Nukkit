@@ -20,6 +20,7 @@ import com.google.common.collect.HashBiMap;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
+import java.util.Optional;
 
 /**
  * @author MagicDroidX
@@ -133,11 +134,14 @@ public abstract class BlockEntity extends Position {
     }
 
     public static BlockEntity createBlockEntity(String type, FullChunk chunk, CompoundTag nbt, Object... args) {
+        type = type.replaceFirst("minecraft:", "");
         type = type.replaceFirst("BlockEntity", ""); //TODO: Remove this after the first release
         BlockEntity blockEntity = null;
 
-        if (knownBlockEntities.containsKey(type)) {
-            Class<? extends BlockEntity> clazz = knownBlockEntities.get(type);
+        String fType = type;
+        Optional<String> optionalKey = knownBlockEntities.keySet().stream().filter(tileName -> tileName.equalsIgnoreCase(fType)).findAny();
+        if (optionalKey.isPresent()) {
+            Class<? extends BlockEntity> clazz = knownBlockEntities.get(optionalKey.get());
 
             if (clazz == null) {
                 return null;
