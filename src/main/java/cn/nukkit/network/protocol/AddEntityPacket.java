@@ -88,7 +88,6 @@ public class AddEntityPacket extends DataPacket {
             .put(EntityFallingBlock.NETWORK_ID, "minecraft:falling_block")
             .put(EntityExpBottle.NETWORK_ID, "minecraft:xp_bottle")
             .put(EntityXPOrb.NETWORK_ID, "minecraft:xp_orb")
-            .put(70, "minecraft:eye_of_ender_signal")
             .put(EntityEndCrystal.NETWORK_ID, "minecraft:ender_crystal")
             .put(76, "minecraft:shulker_bullet")
             .put(EntityFishingHook.NETWORK_ID, "minecraft:fishing_hook")
@@ -130,6 +129,7 @@ public class AddEntityPacket extends DataPacket {
             .put(EntityStrider.NETWORK_ID, "minecraft:strider")
             .put(EntityZoglin.NETWORK_ID, "minecraft:zoglin")
             .put(EntityPiglinBrute.NETWORK_ID, "minecraft:piglin_brute")
+            .put(EntityEnderEye.NETWORK_ID, "minecraft:eye_of_ender_signal")
             .build();
 
     @Override
