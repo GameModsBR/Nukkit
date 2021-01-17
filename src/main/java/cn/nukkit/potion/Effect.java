@@ -209,7 +209,7 @@ public class Effect implements Cloneable {
     public void applyEffect(Entity entity) {
         switch (this.id) {
             case Effect.POISON: //POISON
-                if (entity.getHealth() > 1) {
+                if (entity.getHealth() > 1.5) {
                     entity.attack(new EntityDamageEvent(entity, DamageCause.MAGIC, 1));
                 }
                 break;
