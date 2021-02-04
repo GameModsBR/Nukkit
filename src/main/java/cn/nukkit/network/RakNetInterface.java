@@ -216,8 +216,8 @@ public class RakNetInterface implements RakNetServerListener, AdvancedSourceInte
         NukkitRakNetSession session = this.sessions.get(player.getSocketAddress());
 
         if (session != null) {
-            packet = packet.clone(); // TODO Attempting to solve PowerNukkit#887 by sending a clone
             packet.tryEncode();
+            packet = packet.clone(); // TODO Attempting to solve PowerNukkit#887 by sending a clone
             session.outbound.offer(packet);
         }
 
