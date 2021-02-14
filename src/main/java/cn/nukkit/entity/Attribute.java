@@ -31,7 +31,12 @@ public class Attribute implements Cloneable {
     public static final int ATTACK_DAMAGE = 8;
     public static final int EXPERIENCE_LEVEL = 9;
     public static final int EXPERIENCE = 10;
-    public static final int LUCK = 11;
+    public static final int UNDERWATER_MOVEMENT = 11;
+    public static final int LUCK = 12;
+    public static final int FALL_DAMAGE = 13;
+    public static final int HORSE_JUMP_STRENGTH = 14;
+    public static final int ZOMBIE_SPAWN_REINFORCEMENTS = 15;
+    public static final int LAVA_MOVEMENT = 16;
 
     protected static Map<Integer, Attribute> attributes = new HashMap<>();
 
@@ -65,7 +70,12 @@ public class Attribute implements Cloneable {
         addAttribute(ATTACK_DAMAGE, "minecraft:attack_damage", 0.00f, 340282346638528859811704183484516925440.00f, 1.00f, false);
         addAttribute(EXPERIENCE_LEVEL, "minecraft:player.level", 0.00f, 24791.00f, 0.00f);
         addAttribute(EXPERIENCE, "minecraft:player.experience", 0.00f, 1.00f, 0.00f);
+        addAttribute(UNDERWATER_MOVEMENT, "minecraft:underwater_movement", 0.00f, 340282346638528859811704183484516925440.00f, 0.02f);
         addAttribute(LUCK, "minecraft:luck", -1024, 1024, 0);
+        addAttribute(FALL_DAMAGE, "minecraft:fall_damage", 0.00f, 340282346638528859811704183484516925440.00f, 1.00f);
+        addAttribute(HORSE_JUMP_STRENGTH, "minecraft:horse.jump_strength", 0.00f, 2.00f, 0.70f);
+        addAttribute(ZOMBIE_SPAWN_REINFORCEMENTS, "minecraft:zombie.spawn_reinforcements", 0.00f, 1.00f, 0.00f);
+        addAttribute(LAVA_MOVEMENT, "minecraft:lava_movement", 0.00f, 340282346638528859811704183484516925440.00f, 0.02f);
     }
 
     public static Attribute addAttribute(int id, String name, float minValue, float maxValue, float defaultValue) {

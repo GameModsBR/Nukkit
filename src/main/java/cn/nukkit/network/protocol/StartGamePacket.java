@@ -40,7 +40,7 @@ public class StartGamePacket extends DataPacket {
     public float pitch;
     public int seed;
     public byte dimension;
-    public int generator = 1;
+    public int generator;
     public int worldGamemode;
     public int difficulty;
     public int spawnX;
@@ -48,23 +48,24 @@ public class StartGamePacket extends DataPacket {
     public int spawnZ;
     public boolean hasAchievementsDisabled = true;
     public int dayCycleStopTime = -1; //-1 = not stopped, any positive value = stopped at that time
-    public int eduEditionOffer = 0;
-    public boolean hasEduFeaturesEnabled = false;
+    public int eduEditionOffer;
+    public boolean hasEduFeaturesEnabled;
+    public String educationProductionId = "";
     public float rainLevel;
     public float lightningLevel;
-    public boolean hasConfirmedPlatformLockedContent = false;
-    public boolean multiplayerGame = true;
-    public boolean broadcastToLAN = true;
-    public int xblBroadcastIntent = GAME_PUBLISH_SETTING_PUBLIC;
-    public int platformBroadcastIntent = GAME_PUBLISH_SETTING_PUBLIC;
+    public boolean hasConfirmedPlatformLockedContent;
+    public boolean multiplayerGame;
+    public boolean broadcastToLAN;
+    public int xblBroadcastIntent;
+    public int platformBroadcastIntent;
     public boolean commandsEnabled;
-    public boolean isTexturePacksRequired = false;
+    public boolean isTexturePacksRequired;
     public GameRules gameRules;
-    public boolean bonusChest = false;
-    public boolean hasStartWithMapEnabled = false;
+    public boolean bonusChest;
+    public boolean hasStartWithMapEnabled;
     @Since("1.3.0.0-PN") public boolean trustingPlayers;
-    public int permissionLevel = 1;
-    public int serverChunkTickRange = 4;
+    public int permissionLevel;
+    public int serverChunkTickRange;
     public boolean hasLockedBehaviorPack = false;
     public boolean hasLockedResourcePack = false;
     public boolean isFromLockedWorldTemplate = false;
@@ -72,7 +73,12 @@ public class StartGamePacket extends DataPacket {
     public boolean isFromWorldTemplate = false;
     public boolean isWorldTemplateOptionLocked = false;
     public boolean isOnlySpawningV1Villagers = false;
-    public String vanillaVersion = ProtocolInfo.MINECRAFT_VERSION_NETWORK;
+    public String vanillaVersion = "";
+    public int limitedWorldWidth;
+    public int limitedWorldHeight;
+    public boolean netherType;
+    public boolean forceExperimentalGameplay;
+    
     public String levelId = ""; //base64 string, usually the same as world folder name in vanilla
     public String worldName;
     public String premiumWorldTemplateId = "";
@@ -112,7 +118,7 @@ public class StartGamePacket extends DataPacket {
         this.putVarInt(this.dayCycleStopTime);
         this.putVarInt(this.eduEditionOffer);
         this.putBoolean(this.hasEduFeaturesEnabled);
-        this.putString(""); // Education Edition Product ID
+        this.putString(this.educationProductionId);
         this.putLFloat(this.rainLevel);
         this.putLFloat(this.lightningLevel);
         this.putBoolean(this.hasConfirmedPlatformLockedContent);
@@ -137,11 +143,10 @@ public class StartGamePacket extends DataPacket {
         this.putBoolean(this.isWorldTemplateOptionLocked);
         this.putBoolean(this.isOnlySpawningV1Villagers);
         this.putString(this.vanillaVersion);
-        this.putLInt(16); // Limited world width
-        this.putLInt(16); // Limited world height
-        this.putBoolean(false); // Nether type
-        this.putBoolean(false); // Experimental Gameplay
-
+        this.putLInt(this.limitedWorldWidth);
+        this.putLInt(this.limitedWorldHeight);
+        this.putBoolean(this.netherType);
+        this.putBoolean(this.forceExperimentalGameplay);
         this.putString(this.levelId);
         this.putString(this.worldName);
         this.putString(this.premiumWorldTemplateId);

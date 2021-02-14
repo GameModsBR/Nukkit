@@ -287,7 +287,15 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
 
     private float soulSpeedMultiplier = 1;
     private boolean wasInSoulSandCompatible;
-
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    private int selectedContainerId;
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    private int selectedInventorySlot;
+    
     public float getSoulSpeedMultiplier() {
         return this.soulSpeedMultiplier;
     }
@@ -1216,13 +1224,7 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
             level = ((Position) pos).getLevel();
         }
         this.spawnPosition = new Position(pos.x, pos.y, pos.z, level);
-        SetSpawnPositionPacket pk = new SetSpawnPositionPacket();
-        pk.spawnType = SetSpawnPositionPacket.TYPE_PLAYER_SPAWN;
-        pk.x = (int) this.spawnPosition.x;
-        pk.y = (int) this.spawnPosition.y;
-        pk.z = (int) this.spawnPosition.z;
-        pk.dimension = this.getLevel().getDimension();
-        this.dataPacket(pk);
+        this.sendSpawnPosition((int) pos.x, (int) pos.y, (int) pos.z, level.getDimension());
     }
 
     public void stopSleep() {
@@ -1783,11 +1785,25 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
         UpdateAttributesPacket pk = new UpdateAttributesPacket();
         pk.entityId = this.getId();
         pk.entries = new Attribute[]{
+                // TODO
+                Attribute.getAttribute(Attribute.ABSORPTION),
+                Attribute.getAttribute(Attribute.SATURATION),
+                Attribute.getAttribute(Attribute.EXHAUSTION),
+                Attribute.getAttribute(Attribute.KNOCKBACK_RESISTANCE),
                 Attribute.getAttribute(Attribute.MAX_HEALTH).setMaxValue(this.getMaxHealth()).setValue(health > 0 ? (health < getMaxHealth() ? health : getMaxHealth()) : 0),
-                Attribute.getAttribute(Attribute.MAX_HUNGER).setValue(this.getFoodData().getLevel()),
                 Attribute.getAttribute(Attribute.MOVEMENT_SPEED).setValue(this.getMovementSpeed()),
+                Attribute.getAttribute(Attribute.FOLLOW_RANGE),
+                Attribute.getAttribute(Attribute.MAX_HUNGER).setValue(this.getFoodData().getLevel()),
+                Attribute.getAttribute(Attribute.FOOD),
+                Attribute.getAttribute(Attribute.ATTACK_DAMAGE),
                 Attribute.getAttribute(Attribute.EXPERIENCE_LEVEL).setValue(this.getExperienceLevel()),
-                Attribute.getAttribute(Attribute.EXPERIENCE).setValue(((float) this.getExperience()) / calculateRequireExperience(this.getExperienceLevel()))
+                Attribute.getAttribute(Attribute.EXPERIENCE).setValue(((float) this.getExperience()) / calculateRequireExperience(this.getExperienceLevel())),
+                Attribute.getAttribute(Attribute.UNDERWATER_MOVEMENT),
+                Attribute.getAttribute(Attribute.LUCK),
+                Attribute.getAttribute(Attribute.FALL_DAMAGE),
+                //Attribute.getAttribute(Attribute.HORSE_JUMP_STRENGTH),
+                //Attribute.getAttribute(Attribute.ZOMBIE_SPAWN_REINFORCEMENTS),
+                Attribute.getAttribute(Attribute.LAVA_MOVEMENT)
         };
         this.dataPacket(pk);
     }
@@ -2167,7 +2183,17 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
             this.namedTag.putInt("TimeSinceRest", 0);
         }
         this.timeSinceRest = this.namedTag.getInt("TimeSinceRest");
-
+        
+        if (!this.namedTag.contains("SelectedContainerId")) {
+            this.namedTag.putInt("SelectedContainerId", ContainerIds.INVENTORY);
+        }
+        this.selectedContainerId = this.namedTag.getInt("SelectedContainerId");
+        
+        if (!this.namedTag.contains("SelectedInventorySlot")) {
+            this.namedTag.putInt("SelectedInventorySlot", 0);
+        }
+        this.selectedInventorySlot = this.namedTag.getInt("SelectedInventorySlot");
+        
         if (!this.server.isCheckMovement()) {
             this.checkMovement = false;
         }
@@ -2204,46 +2230,49 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
         startGamePacket.z = (float) this.z;
         startGamePacket.yaw = (float) this.yaw;
         startGamePacket.pitch = (float) this.pitch;
-        startGamePacket.seed = -1;
-        startGamePacket.dimension = /*(byte) (this.level.getDimension() & 0xff)*/0;
+        startGamePacket.seed = (int) getLevel().getSeed();
+        startGamePacket.dimension = (byte) getLevel().getDimension();
+        startGamePacket.trustingPlayers = false;
         startGamePacket.worldGamemode = getClientFriendlyGamemode(this.gamemode);
         startGamePacket.difficulty = this.server.getDifficulty();
         startGamePacket.spawnX = spawnPosition.getFloorX();
         startGamePacket.spawnY = spawnPosition.getFloorY();
         startGamePacket.spawnZ = spawnPosition.getFloorZ();
         startGamePacket.hasAchievementsDisabled = true;
-        startGamePacket.dayCycleStopTime = -1;
+        startGamePacket.dayCycleStopTime = getLevel().getTime();
+        startGamePacket.eduEditionOffer = 0;
+        startGamePacket.hasEduFeaturesEnabled = false;
+        startGamePacket.educationProductionId = "";
         startGamePacket.rainLevel = 0;
         startGamePacket.lightningLevel = 0;
+        startGamePacket.multiplayerGame = true;
+        startGamePacket.broadcastToLAN = true;
+        startGamePacket.xblBroadcastIntent = StartGamePacket.GAME_PUBLISH_SETTING_PUBLIC;
+        startGamePacket.platformBroadcastIntent = StartGamePacket.GAME_PUBLISH_SETTING_PUBLIC;
         startGamePacket.commandsEnabled = this.isEnableClientCommand();
+        startGamePacket.isTexturePacksRequired = this.getServer().getForceResources();
+        startGamePacket.bonusChest = false;
+        startGamePacket.hasStartWithMapEnabled = false;
         startGamePacket.gameRules = getLevel().getGameRules();
+        
         startGamePacket.levelId = "";
-        startGamePacket.worldName = this.getServer().getNetwork().getName();
-        startGamePacket.generator = 1; //0 old, 1 infinite, 2 flat
-        startGamePacket.dimension = (byte) getLevel().getDimension();
-        //startGamePacket.isInventoryServerAuthoritative = true;
+        startGamePacket.worldName = this.getServer().getNetwork().getName(); // Use MOTD
+        startGamePacket.generator = 1; // 0 old, 1 infinite, 2 flat
+        startGamePacket.permissionLevel = PERMISSION_MEMBER;
+        startGamePacket.serverChunkTickRange = 4;
+        startGamePacket.vanillaVersion = "*";
+        startGamePacket.limitedWorldWidth = 16;
+        startGamePacket.limitedWorldHeight = 16;
+        startGamePacket.netherType = false;
+        startGamePacket.forceExperimentalGameplay = false;
+        startGamePacket.premiumWorldTemplateId = "00000000-0000-0000-0000-000000000000";
+        startGamePacket.multiplayerCorrelationId = "";
+        startGamePacket.isInventoryServerAuthoritative = false;
+        startGamePacket.isMovementServerAuthoritative = false; // CLIENT
         this.dataPacket(startGamePacket);
-
-        this.dataPacket(new BiomeDefinitionListPacket());
-        this.dataPacket(new AvailableEntityIdentifiersPacket());
-        this.inventory.sendCreativeContents();
-        this.getAdventureSettings().update();
-
-        this.sendAttributes();
-
-        this.sendPotionEffects(this);
-        this.sendData(this);
-
+        
         this.loggedIn = true;
-
-        this.level.sendTime(this);
-
-        this.sendAttributes();
-        this.setNameTagVisible(true);
-        this.setNameTagAlwaysVisible(true);
-        this.setCanClimb(true);
-
-        log.info(this.getServer().getLanguage().translateString("nukkit.player.logIn",
+        this.server.getLogger().info(this.getServer().getLanguage().translateString("nukkit.player.logIn",
                 TextFormat.AQUA + this.username + TextFormat.WHITE,
                 this.getAddress(),
                 String.valueOf(this.getPort()),
@@ -2252,7 +2281,40 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                 String.valueOf(NukkitMath.round(this.x, 4)),
                 String.valueOf(NukkitMath.round(this.y, 4)),
                 String.valueOf(NukkitMath.round(this.z, 4))));
-
+        
+        this.dataPacket(new ItemComponentPacket());
+        this.sendSpawnPosition((int) spawnPosition.getFloorX(), (int) spawnPosition.getFloorY(), (int) spawnPosition.getFloorZ(), this.getLevel().getDimension());
+        this.level.sendTime(this);
+        SetDifficultyPacket difficultyPacket = new SetDifficultyPacket();
+        difficultyPacket.difficulty = this.server.getDifficulty();
+        this.dataPacket(difficultyPacket);
+        SetCommandsEnabledPacket setCommandsEnabledPacket = new SetCommandsEnabledPacket();
+        setCommandsEnabledPacket.enabled = this.isEnableClientCommand();
+        this.dataPacket(setCommandsEnabledPacket);
+        this.getAdventureSettings().update();
+        GameRulesChangedPacket gameRulesChangedPacket = new GameRulesChangedPacket();
+        gameRulesChangedPacket.gameRules = getLevel().getGameRules();
+        this.dataPacket(gameRulesChangedPacket);
+        this.server.sendFullPlayerListData(this);
+        this.dataPacket(new BiomeDefinitionListPacket());
+        this.dataPacket(new AvailableEntityIdentifiersPacket());
+        // TODO: PlayerFogPacket
+        this.sendAttributes();
+        this.inventory.sendCreativeContents();
+        this.sendAllInventories();
+        PlayerHotbarPacket playerHotbarPacket = new PlayerHotbarPacket();
+        playerHotbarPacket.windowId = this.selectedContainerId;
+        playerHotbarPacket.selectedHotbarSlot = this.selectedInventorySlot;
+        this.dataPacket(playerHotbarPacket);
+        this.server.sendRecipeList(this);
+        this.sendCommandData();
+        
+        this.sendPotionEffects(this);
+        this.sendData(this);
+        this.setNameTagVisible(true);
+        this.setNameTagAlwaysVisible(true);
+        this.setCanClimb(true);
+        
         if (this.isOp() || this.hasPermission("nukkit.textcolor")) {
             this.setRemoveFormat(false);
         }
@@ -3681,7 +3743,10 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                     if (hotbarPacket.windowId != ContainerIds.INVENTORY) {
                         return; //In PE this should never happen
                     }
-
+                    
+                    this.selectedContainerId = hotbarPacket.windowId;
+                    this.selectedInventorySlot = hotbarPacket.selectedHotbarSlot;
+                    
                     this.inventory.equipItem(hotbarPacket.selectedHotbarSlot);
                     break;
                 case ProtocolInfo.SERVER_SETTINGS_REQUEST_PACKET:
@@ -4168,7 +4233,10 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
             this.namedTag.putFloat("foodSaturationLevel", this.getFoodData().getFoodSaturationLevel());
 
             this.namedTag.putInt("TimeSinceRest", this.timeSinceRest);
-
+            
+            this.namedTag.putInt("SelectedContainerId", this.selectedContainerId);
+            this.namedTag.putInt("SelectedInventorySlot", this.selectedInventorySlot);
+            
             if (!this.username.isEmpty() && this.namedTag != null) {
                 this.server.saveOfflinePlayerData(this.uuid, this.namedTag, async);
             }
@@ -5617,7 +5685,7 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
     public void setTimeSinceRest(int timeSinceRest) {
         this.timeSinceRest = timeSinceRest;
     }
-
+    
     // TODO: Support Translation Parameters
     @PowerNukkitOnly
     @Since("1.4.0.0-PN")
@@ -5636,13 +5704,13 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
         pk.message = message;
         this.dataPacket(pk);
     }
-
+    
     @PowerNukkitOnly
     @Since("1.4.0.0-PN")
     public void sendWhisper(String message) {
         this.sendWhisper("", message);
     }
-
+    
     @PowerNukkitOnly
     @Since("1.4.0.0-PN")
     public void sendWhisper(String source, String message) {
@@ -5652,13 +5720,13 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
         pk.message = message;
         this.dataPacket(pk);
     }
-
+    
     @PowerNukkitOnly
     @Since("1.4.0.0-PN")
     public void sendAnnouncement(String message) {
         this.sendAnnouncement("", message);
     }
-
+    
     @PowerNukkitOnly
     @Since("1.4.0.0-PN")
     public void sendAnnouncement(String source, String message) {
@@ -5666,6 +5734,42 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
         pk.type = TextPacket.TYPE_ANNOUNCEMENT;
         pk.source = source;
         pk.message = message;
+        this.dataPacket(pk);
+    }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public int getSelectedContainerId() {
+        return selectedContainerId;
+    }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public void setSelectedContainerId(int selectedContainerId) {
+        this.selectedContainerId = selectedContainerId;
+    }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public int getSelectedInventorySlot() {
+        return selectedInventorySlot;
+    }
+
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public void setSelectedInventorySlot(int selectedInventorySlot) {
+        this.selectedInventorySlot = selectedInventorySlot;
+    }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public void sendSpawnPosition(int x, int y, int z, int dimension) {
+        SetSpawnPositionPacket pk = new SetSpawnPositionPacket();
+        pk.spawnType = SetSpawnPositionPacket.TYPE_PLAYER_SPAWN;
+        pk.x = x;
+        pk.y = y;
+        pk.z = z;
+        pk.dimension = dimension;
         this.dataPacket(pk);
     }
 }
