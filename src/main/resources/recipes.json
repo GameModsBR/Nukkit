@@ -46762,7 +46762,460 @@
     }
   ],
   "potionMixes" : [
-    {
+  { //Мутное зелье
+      "inputId" : 373,
+      "inputMeta" : 0,
+      "reagentId" : 372,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 4
+    },
+    { //зелье силы 1 лвл
+      "inputId" : 373,
+      "inputMeta" : 4,
+      "reagentId" : 377,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 31
+    },
+    { //зелье силы на 8 минут
+      "inputId" : 373,
+      "inputMeta" : 31,
+      "reagentId" : 331,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 32
+    },
+    { //зелье силы 2 лвл
+      "inputId" : 373,
+      "inputMeta" : 31,
+      "reagentId" : 348,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 33
+    },
+    { //зелье скорости 1 лвл
+      "inputId" : 373,
+      "inputMeta" : 4,
+      "reagentId" : 353,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 14
+    },
+    { //зелье медлительности 1 лвл
+      "inputId" : 373,
+      "inputMeta" : 14,
+      "reagentId" : 376,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 17
+    },
+    { //зелье медлительности 1 лвл, 2 способ
+      "inputId" : 373,
+      "inputMeta" : 9,
+      "reagentId" : 353,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 17
+    },
+    { //зелье медлительности 2 лвл
+      "inputId" : 373,
+      "inputMeta" : 17,
+      "reagentId" : 348,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 42
+    },
+    { //зелье медлительности 4 минут
+      "inputId" : 373,
+      "inputMeta" : 17,
+      "reagentId" : 331,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 18
+    },
+    { //зелье медлительности 4 минут, 2 способ
+      "inputId" : 373,
+      "inputMeta" : 15,
+      "reagentId" : 376,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 18
+    },
+    { //зелье медлительности 4 минут, 3 способ
+      "inputId" : 373,
+      "inputMeta" : 10,
+      "reagentId" : 376,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 18
+    },
+    { //зелье скорости 8 минут
+      "inputId" : 373,
+      "inputMeta" : 14,
+      "reagentId" : 331,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 15
+    },
+    { //зелье скорости 2 лвл
+      "inputId" : 373,
+      "inputMeta" : 14,
+      "reagentId" : 348,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 16
+    },
+    { //зелье ночного виденья 1 лвл
+      "inputId" : 373,
+      "inputMeta" : 4,
+      "reagentId" : 396,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 5
+    },
+    { //зелье ночного виденья 8 минут
+      "inputId" : 373,
+      "inputMeta" : 5,
+      "reagentId" : 331,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 6
+    },
+    { //зелье огнестойкости 1 лвл
+      "inputId" : 373,
+      "inputMeta" : 4,
+      "reagentId" : 378,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 12
+    },
+    { //зелье огнестойкости 8 минут
+      "inputId" : 373,
+      "inputMeta" : 12,
+      "reagentId" : 331,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 13
+    },
+    { //зелье невидимости 1 лвл
+      "inputId" : 373,
+      "inputMeta" : 5,
+      "reagentId" : 376,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 7
+    },
+    { //зелье невидимости 8 минут
+      "inputId" : 373,
+      "inputMeta" : 7,
+      "reagentId" : 331,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 8
+    },
+    { //зелье невидимости 8 минут, 2 способ
+      "inputId" : 373,
+      "inputMeta" : 6,
+      "reagentId" : 331,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 8
+    },
+    { //зелье подводного дыхания 1 лвл
+      "inputId" : 373,
+      "inputMeta" : 4,
+      "reagentId" : 462,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 19
+    },
+    { //зелье подводного дыхания 8 минут
+      "inputId" : 373,
+      "inputMeta" : 19,
+      "reagentId" : 331,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 20
+    },
+    { //зелье прыгучести 1 лвл
+      "inputId" : 373,
+      "inputMeta" : 4,
+      "reagentId" : 414,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 9
+    },
+    { //зелье прыгучести 8 минут
+      "inputId" : 373,
+      "inputMeta" : 9,
+      "reagentId" : 331,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 10
+    },
+    { //зелье прыгучести 2 лвл
+      "inputId" : 373,
+      "inputMeta" : 9,
+      "reagentId" : 348,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 11
+    },
+    { //зелье слабости 1 лвл
+      "inputId" : 373,
+      "inputMeta" : 0,
+      "reagentId" : 376,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 34
+    },
+    { //зелье слабости 4 минуты
+      "inputId" : 373,
+      "inputMeta" : 34,
+      "reagentId" : 331,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 35
+    },
+    { //зелье отравление 1 лвл
+      "inputId" : 373,
+      "inputMeta" : 4,
+      "reagentId" : 375,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 25
+    },
+    { //зелье отравление 2 минуты
+      "inputId" : 373,
+      "inputMeta" : 25,
+      "reagentId" : 331,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 26
+    },
+    { //зелье отравления 2 лвл
+      "inputId" : 373,
+      "inputMeta" : 25,
+      "reagentId" : 348,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 27
+    },
+    { //зелье регенерации 1 лвл
+      "inputId" : 373,
+      "inputMeta" : 4,
+      "reagentId" : 370,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 28
+    },
+    { //зелье регенерации 2 минуты
+      "inputId" : 373,
+      "inputMeta" : 28,
+      "reagentId" : 331,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 29
+    },
+    { //зелье регенерации 2 лвл
+      "inputId" : 373,
+      "inputMeta" : 28,
+      "reagentId" : 348,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 30
+    },
+    { //зелье моментального хила 1 лвл
+      "inputId" : 373,
+      "inputMeta" : 4,
+      "reagentId" : 382,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 21
+    },
+    { //зелье моментального хила 2 лвл
+      "inputId" : 373,
+      "inputMeta" : 21,
+      "reagentId" : 348,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 22
+    },
+    { //зелье моментального урона 1 лвл
+      "inputId" : 373,
+      "inputMeta" : 21,
+      "reagentId" : 376,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 23
+    },
+    { //зелье моментального урона 1 лвл, 2 способ
+      "inputId" : 373,
+      "inputMeta" : 25,
+      "reagentId" : 376,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 23
+    },
+    { //зелье моментального урона 2 лвл
+      "inputId" : 373,
+      "inputMeta" : 23,
+      "reagentId" : 348,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 24
+    },
+    { //зелье моментального урона 2 лвл, 2 способ
+      "inputId" : 373,
+      "inputMeta" : 22,
+      "reagentId" : 348,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 24
+    },
+    { //зелье моментального урона 2 лвл, 3 способ
+      "inputId" : 373,
+      "inputMeta" : 27,
+      "reagentId" : 348,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 24
+    },
+    { //взрывное зелье
+      "inputId" : 373,
+      "inputMeta" : 4,
+      "reagentId" : 289,
+      "reagentMeta" : 0,
+      "outputId" : 438,
+      "outputMeta" : 0
+    },
+    { //оседающее зелье
+      "inputId" : 438,
+      "inputMeta" : 0,
+      "reagentId" : 437,
+      "reagentMeta" : 0,
+      "outputId" : 441,
+      "outputMeta" : 0
+    },
+    { //Мутное зелье паучий глаз
+      "inputId" : 373,
+      "inputMeta" : 0,
+      "reagentId" : 375,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 1
+    },
+    { //Мутное зелье слеза гаста
+      "inputId" : 373,
+      "inputMeta" : 0,
+      "reagentId" : 370,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 1
+    },
+    { //Мутное зелье кроличья лапка
+      "inputId" : 373,
+      "inputMeta" : 0,
+      "reagentId" : 414,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 1
+    },
+    { //Мутное зелье порошок блейза
+      "inputId" : 373,
+      "inputMeta" : 0,
+      "reagentId" : 377,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 1
+    },
+    { //Мутное зелье светящийся арбуз
+      "inputId" : 373,
+      "inputMeta" : 0,
+      "reagentId" : 382,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 1
+    },
+    { //Мутное зелье сахар
+      "inputId" : 373,
+      "inputMeta" : 0,
+      "reagentId" : 353,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 1
+    },
+    { //Мутное зелье сгусток магмы
+      "inputId" : 373,
+      "inputMeta" : 0,
+      "reagentId" : 378,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 1
+    },
+    { //Мутное зелье редстоун
+      "inputId" : 373,
+      "inputMeta" : 0,
+      "reagentId" : 331,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 1
+    },
+    { //thick potion
+      "inputId" : 373,
+      "inputMeta" : 0,
+      "reagentId" : 348,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 3
+    },
+    { //зелье медленного падения 1 лвл
+      "inputId" : 373,
+      "inputMeta" : 4,
+      "reagentId" : 470,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 40
+    },
+    { //зелье медленного падения 4 минуты
+      "inputId" : 373,
+      "inputMeta" : 40,
+      "reagentId" : 331,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 41
+    },
+    { //зелье черепахи 1 лвл
+      "inputId" : 373,
+      "inputMeta" : 4,
+      "reagentId" : 469,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 37
+    },
+    { //зелье черепахи на 40 сек
+      "inputId" : 373,
+      "inputMeta" : 37,
+      "reagentId" : 331,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 38
+    },
+    { //зелье черепахи 2 лвл
+      "inputId" : 373,
+      "inputMeta" : 38,
+      "reagentId" : 348,
+      "reagentMeta" : 0,
+      "outputId" : 373,
+      "outputMeta" : 39
+    },
+    
+    
+    
+    
+    
+  { //If this is removed, the brewing stand stops working.
       "inputId" : 424,
       "inputMeta" : 17,
       "reagentId" : 392,
