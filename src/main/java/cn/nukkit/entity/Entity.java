@@ -1224,14 +1224,23 @@ public abstract class Entity extends Location implements Metadatable {
             this.setAbsorption(Math.max(0, this.getAbsorption() + source.getDamage(EntityDamageEvent.DamageModifier.ABSORPTION)));
         }
         setLastDamageCause(source);
-        float health = getHealth() - source.getFinalDamage();
-        if (health < 1 && this.isPlayer) {
+        
+        float newHealth = getHealth() - source.getFinalDamage();
+        if (newHealth < 1 && this instanceof Player) {
             if (source.getCause() != DamageCause.VOID && source.getCause() != DamageCause.SUICIDE) {
                 Player p = (Player) this;
-                PlayerOffhandInventory offhandInventory = p.getOffhandInventory();
-                PlayerInventory playerInventory = p.getInventory();
-                if (offhandInventory.getItem(0).getId() == Item.TOTEM || playerInventory.getItemInHand().getId() == Item.TOTEM) {
+                boolean totem = false;
+                if (p.getOffhandInventory().getItem(0).getId() == Item.TOTEM) {
+                    p.getOffhandInventory().clear(0);
+                    totem = true;
+                } else if (p.getInventory().getItemInHand().getId() == Item.TOTEM) {
+                    p.getInventory().clear(p.getInventory().getHeldItemIndex());
+                    totem = true;
+                }
+                if (totem) {
                     this.getLevel().addLevelEvent(this, LevelEventPacket.EVENT_SOUND_TOTEM);
+                    this.getLevel().addParticleEffect(this, ParticleEffect.TOTEM);
+
                     this.extinguish();
                     this.removeAllEffects();
                     this.setHealth(1);
@@ -1245,18 +1254,12 @@ public abstract class Entity extends Location implements Metadatable {
                     pk.event = EntityEventPacket.CONSUME_TOTEM;
                     p.dataPacket(pk);
 
-                    if (offhandInventory.getItem(0).getId() == Item.TOTEM) {
-                        offhandInventory.clear(0);
-                    } else {
-                        playerInventory.clear(playerInventory.getHeldItemIndex());
-                    }
-
                     source.setCancelled(true);
                     return false;
                 }
             }
         }
-        setHealth(health);
+        setHealth(newHealth);
         return true;
     }
 
