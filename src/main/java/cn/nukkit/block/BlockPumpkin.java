@@ -13,7 +13,7 @@ import cn.nukkit.item.ItemID;
 import cn.nukkit.item.ItemTool;
 import cn.nukkit.math.BlockFace;
 import cn.nukkit.utils.BlockColor;
-import cn.nukkit.utils.BlockPattern
+import cn.nukkit.utils.BlockPattern;
 import cn.nukkit.utils.Faceable;
 
 import static cn.nukkit.blockproperty.CommonBlockProperties.DIRECTION;
