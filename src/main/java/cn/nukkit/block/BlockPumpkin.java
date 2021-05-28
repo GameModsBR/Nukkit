@@ -1,13 +1,19 @@
 package cn.nukkit.block;
 
 import cn.nukkit.Player;
+import cn.nukkit.Server;
 import cn.nukkit.blockproperty.BlockProperties;
+import cn.nukkit.entity.Entity;
+import cn.nukkit.level.Location;
+import cn.nukkit.event.entity.CreatureSpawnEvent;
+import cn.nukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemBlock;
 import cn.nukkit.item.ItemID;
 import cn.nukkit.item.ItemTool;
 import cn.nukkit.math.BlockFace;
 import cn.nukkit.utils.BlockColor;
+import cn.nukkit.utils.BlockPattern
 import cn.nukkit.utils.Faceable;
 
 import static cn.nukkit.blockproperty.CommonBlockProperties.DIRECTION;
@@ -19,6 +25,21 @@ import javax.annotation.Nonnull;
  * @since 2015/12/8
  */
 public class BlockPumpkin extends BlockSolidMeta implements Faceable {
+	
+	private static final BlockPattern IRONGOLEM_PATTERN = new BlockPattern(
+        new BlockPattern.PatternItem(PUMPKIN, (byte) -1, 1, 0),
+        new BlockPattern.PatternItem(IRON_BLOCK, (byte) 0, 0, 1),
+        new BlockPattern.PatternItem(IRON_BLOCK, (byte) 0, 1, 1),
+        new BlockPattern.PatternItem(IRON_BLOCK, (byte) 0, 2, 1),
+        new BlockPattern.PatternItem(IRON_BLOCK, (byte) 0, 1, 2)
+    );
+
+    private static final BlockPattern SNOWMAN_PATTERN = new BlockPattern(
+        new BlockPattern.PatternItem(PUMPKIN, (byte) -1, 0, 0),
+        new BlockPattern.PatternItem(SNOW_BLOCK, (byte) 0, 0, 1),
+        new BlockPattern.PatternItem(SNOW_BLOCK, (byte) 0, 0, 2)
+    );
+
     public static final BlockProperties PROPERTIES = new BlockProperties(
         DIRECTION
     );
@@ -98,6 +119,10 @@ public class BlockPumpkin extends BlockSolidMeta implements Faceable {
             setBlockFace(player.getDirection().getOpposite());
         }
         this.level.setBlock(block, this, true, true);
+        Location location = block.getLocation();
+        if (!spawnIronGolem(location.clone())) {
+            spawnSnowman(location.clone());
+        }
         return true;
     }
 
@@ -124,5 +149,33 @@ public class BlockPumpkin extends BlockSolidMeta implements Faceable {
     @Override
     public void setBlockFace(BlockFace face) {
         setPropertyValue(DIRECTION, face);
+    }
+    
+    private boolean spawnIronGolem(Location location) {
+    	Entity entity = Entity.createEntity("Iron Golem", location.clone().subtract(-0.5, 2, -0.5));
+    	CreatureSpawnEvent ev = new CreatureSpawnEvent(entity.getNetworkId, location.clone().subtract(-0.5, 2, -0.5), SpawnReason.BUILD_IRONGOLEM);
+        Server.getInstance().getPluginManager().callEvent(ev);
+
+        if (ev.isCancelled()) {
+            return false;
+        }
+        if (IRONGOLEM_PATTERN.matches(location, true, 1, 0)) {
+            entity.spawnToAll();
+            return true;
+        }
+        return false;
+    }
+
+    private void spawnSnowman(Location location) {
+        Entity entity = Entity.createEntity("Snow Golem", location.clone().subtract(-0.5, 2, -0.5));
+        CreatureSpawnEvent ev = new CreatureSpawnEvent(entity.getNetworkId, location.clone().subtract(-0.5, 2, -0.5), SpawnReason.BUILD_IRONGOLEM);
+        Server.getInstance().getPluginManager().callEvent(ev);
+
+        if (ev.isCancelled()) {
+            return;
+        }
+        if (SNOWMAN_PATTERN.matches(location, true, 0, 0)) {
+            entity.spawnToAll();
+        }
     }
 }
