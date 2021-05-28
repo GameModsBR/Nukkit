@@ -18,7 +18,7 @@ public class BlockPattern {
             if (matches != null) {
                 if (clear) {
                     for (Location match : matches) {
-                        location.getLevel().setBlock(location, Block.AIR);
+                        location.getLevel().setBlock(location, Block.get(Block.AIR));
                     }
                 }
                 return true;
