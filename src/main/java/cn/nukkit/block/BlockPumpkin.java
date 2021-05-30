@@ -30,7 +30,7 @@ import static cn.nukkit.blockproperty.CommonBlockProperties.DIRECTION;
 public class BlockPumpkin extends BlockSolidMeta implements Faceable {
 	
 	private static final BlockPattern IRONGOLEM_PATTERN = new BlockPattern(
-        new BlockPattern.PatternBlock(get(CARVED_PUMPKIN), -1, 1, 0),
+        new BlockPattern.PatternBlock(get(PUMPKIN), -1, 1, 0),
         new BlockPattern.PatternBlock(get(IRON_BLOCK), 0, 0, 1),
         new BlockPattern.PatternBlock(get(IRON_BLOCK), 0, 1, 1),
         new BlockPattern.PatternBlock(get(IRON_BLOCK), 0, 2, 1),
@@ -38,7 +38,7 @@ public class BlockPumpkin extends BlockSolidMeta implements Faceable {
     );
 
     private static final BlockPattern SNOWMAN_PATTERN = new BlockPattern(
-        new BlockPattern.PatternBlock(get(CARVED_PUMPKIN), -1, 0, 0),
+        new BlockPattern.PatternBlock(get(PUMPKIN), -1, 0, 0),
         new BlockPattern.PatternBlock(get(SNOW_BLOCK), 0, 0, 1),
         new BlockPattern.PatternBlock(get(SNOW_BLOCK), 0, 0, 2)
     );
