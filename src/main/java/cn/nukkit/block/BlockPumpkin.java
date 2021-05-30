@@ -2,6 +2,8 @@ package cn.nukkit.block;
 
 import cn.nukkit.Player;
 import cn.nukkit.Server;
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
 import cn.nukkit.blockproperty.BlockProperties;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.level.Location;
@@ -17,9 +19,9 @@ import cn.nukkit.utils.BlockPattern;
 import cn.nukkit.utils.BlockPattern.PatternBlock;
 import cn.nukkit.utils.Faceable;
 
-import static cn.nukkit.blockproperty.CommonBlockProperties.DIRECTION;
-
 import javax.annotation.Nonnull;
+
+import static cn.nukkit.blockproperty.CommonBlockProperties.DIRECTION;
 
 /**
  * @author xtypr
@@ -41,6 +43,8 @@ public class BlockPumpkin extends BlockSolidMeta implements Faceable {
         new BlockPattern.PatternBlock(SNOW_BLOCK, 0, 0, 2)
     );
 
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
     public static final BlockProperties PROPERTIES = new BlockProperties(
         DIRECTION
     );
