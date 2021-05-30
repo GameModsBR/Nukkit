@@ -38,7 +38,7 @@ public class BlockPumpkin extends BlockSolidMeta implements Faceable {
     );
 
     private static final BlockPattern SNOWMAN_PATTERN = new BlockPattern(
-        new BlockPattern.PatternBlock(get(CARVED_PUMPKIN,) -1, 0, 0),
+        new BlockPattern.PatternBlock(get(CARVED_PUMPKIN), -1, 0, 0),
         new BlockPattern.PatternBlock(get(SNOW_BLOCK), 0, 0, 1),
         new BlockPattern.PatternBlock(get(SNOW_BLOCK), 0, 0, 2)
     );
