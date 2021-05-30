@@ -30,11 +30,11 @@ public class BlockPattern {
     public Location[] matches(Location location, int xz, int y, Alignment alignment) {
         int i = 0;
         Location[] loc = new Location[patternBlocks.length];
-        for (PatternBlock patternBlock : patternBlocks) {
-            int dxz = patternBlock.getXZ() - xz;
-            int dy = patternBlock.getY() - y;
+        for (PatternBlock block : patternBlocks) {
+            int dxz = block.xz - xz,
+                  dy = block.y - y;
             Location relative = location.clone().add(dxz * alignment.x, -dy, dxz * alignment.z);
-            if (relative.getLevel().getBlock(relative).getId() != patternBlock.getId() || ((relative.getLevel().getBlock(relative).getDamage() != patternBlock.getDamage()) && patternBlock.getDamage() != -1)) {
+            if ((relative.getLevelBlock().getId() != block.getId() || relative.getLevelBlock().getDamage() != block.getDamage()) && block.getDamage() != -1)) {
                 return null;
             }
             loc[i++] = relative;
@@ -57,32 +57,24 @@ public class BlockPattern {
 
     public static class PatternBlock {
 
-        private int id;
-        private int meta;
-        private int xz;
-        private int y;
+        private final Block block;
+        private final int meta;
+        private final int xz;
+        private final int y;
 
-        public PatternBlock(int id, int meta, int xz, int y) {
-            this.id = id;
+        public PatternBlock(Block block, int meta, int xz, int y) {
+            this.block = block;
             this.meta = meta;
             this.xz = xz;
             this.y = y;
         }
-
+        
         public int getId() {
-            return this.id;
+        	return this.block.getId();
         }
-
+        
         public int getDamage() {
-            return this.meta;
-        }
-
-        public int getXZ() {
-            return this.xz;
-        }
-
-        public int getY() {
-            return this.y;
+        	return this.meta;
         }
 
         public boolean matches(Block block) {
