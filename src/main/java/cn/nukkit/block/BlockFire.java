@@ -94,7 +94,9 @@ public class BlockFire extends BlockFlowable {
     @Override
     public void onEntityCollide(Entity entity) {
     	if (entity instanceof EntityPotion) {
-    	    level.setBlock(this, get(AIR), true);
+    	    if (((EntityPotion)entity).getPotionId() == 0) {
+                level.setBlock(this, get(AIR), true);
+            }
         }
         if (!entity.hasEffect(Effect.FIRE_RESISTANCE)) {
             entity.attack(new EntityDamageByBlockEvent(this, entity, DamageCause.FIRE, 1));
