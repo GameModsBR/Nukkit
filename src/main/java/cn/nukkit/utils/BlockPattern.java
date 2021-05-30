@@ -78,7 +78,7 @@ public class BlockPattern {
         }
 
         public boolean matches(Block block) {
-            return block.getId() == this.id && block.getDamage() == this.meta;
+            return block.getId() == this.getId() && block.getDamage() == this.getDamage();
         }
     }
 }
