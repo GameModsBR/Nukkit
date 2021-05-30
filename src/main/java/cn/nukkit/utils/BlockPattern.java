@@ -34,7 +34,7 @@ public class BlockPattern {
             int dxz = block.xz - xz,
                   dy = block.y - y;
             Location relative = location.clone().add(dxz * alignment.x, -dy, dxz * alignment.z);
-            if ((relative.getLevelBlock().getId() != block.getId() || relative.getLevelBlock().getDamage() != block.getDamage()) && block.getDamage() != -1)) {
+            if ((relative.getLevelBlock().getId() != block.getId() || relative.getLevelBlock().getDamage() != block.getDamage()) && block.getDamage() != -1) {
                 return null;
             }
             loc[i++] = relative;
