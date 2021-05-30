@@ -153,11 +153,11 @@ public class BlockPumpkin extends BlockSolidMeta implements Faceable {
     }
     
     private boolean spawnIronGolem(Location location) {
-    	Entity entity = Entity.createEntity("Iron Golem", location.clone().subtract(-0.5, 2, -0.5));
-    	CreatureSpawnEvent ev = new CreatureSpawnEvent(entity.getNetworkId(), location.clone().subtract(-0.5, 2, -0.5), SpawnReason.BUILD_IRONGOLEM);
-        Server.getInstance().getPluginManager().callEvent(ev);
+    	Entity entity = Entity.createEntity("IronGolem", location.clone().subtract(-0.5, 2, -0.5));
+    	CreatureSpawnEvent creatureSpawnEvent = new CreatureSpawnEvent(entity.getNetworkId(), location.clone().subtract(-0.5, 2, -0.5), SpawnReason.BUILD_IRONGOLEM);
+        Server.getInstance().getPluginManager().callEvent(creatureSpawnEvent);
 
-        if (ev.isCancelled()) {
+        if (creatureSpawnEvent.isCancelled()) {
             return false;
         }
         if (IRONGOLEM_PATTERN.matches(location, true, 1, 0)) {
@@ -168,11 +168,11 @@ public class BlockPumpkin extends BlockSolidMeta implements Faceable {
     }
 
     private void spawnSnowman(Location location) {
-        Entity entity = Entity.createEntity("Snow Golem", location.clone().subtract(-0.5, 2, -0.5));
-        CreatureSpawnEvent ev = new CreatureSpawnEvent(entity.getNetworkId(), location.clone().subtract(-0.5, 2, -0.5), SpawnReason.BUILD_IRONGOLEM);
-        Server.getInstance().getPluginManager().callEvent(ev);
+        Entity entity = Entity.createEntity("SnowGolem", location.clone().subtract(-0.5, 2, -0.5));
+        CreatureSpawnEvent creatureSpawnEvent = new CreatureSpawnEvent(entity.getNetworkId(), location.clone().subtract(-0.5, 2, -0.5), SpawnReason.BUILD_IRONGOLEM);
+        Server.getInstance().getPluginManager().callEvent(creatureSpawnEvent);
 
-        if (ev.isCancelled()) {
+        if (creatureSpawnEvent.isCancelled()) {
             return;
         }
         if (SNOWMAN_PATTERN.matches(location, true, 0, 0)) {
