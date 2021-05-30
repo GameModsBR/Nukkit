@@ -30,17 +30,17 @@ import static cn.nukkit.blockproperty.CommonBlockProperties.DIRECTION;
 public class BlockPumpkin extends BlockSolidMeta implements Faceable {
 	
 	private static final BlockPattern IRONGOLEM_PATTERN = new BlockPattern(
-        new BlockPattern.PatternBlock(Block.get(PUMPKIN), -1, 1, 0),
-        new BlockPattern.PatternBlock(Block.get(IRON_BLOCK), 0, 0, 1),
-        new BlockPattern.PatternBlock(Block.get(IRON_BLOCK), 0, 1, 1),
-        new BlockPattern.PatternBlock(Block.get(IRON_BLOCK), 0, 2, 1),
-        new BlockPattern.PatternBlock(Block.get(IRON_BLOCK), 0, 1, 2)
+        new BlockPattern.PatternBlock(CARVED_PUMPKIN, -1, 1, 0),
+        new BlockPattern.PatternBlock(IRON_BLOCK, 0, 0, 1),
+        new BlockPattern.PatternBlock(IRON_BLOCK, 0, 1, 1),
+        new BlockPattern.PatternBlock(IRON_BLOCK, 0, 2, 1),
+        new BlockPattern.PatternBlock(IRON_BLOCK, 0, 1, 2)
     );
 
     private static final BlockPattern SNOWMAN_PATTERN = new BlockPattern(
-        new BlockPattern.PatternBlock(Block.get(PUMPKIN), -1, 0, 0),
-        new BlockPattern.PatternBlock(Block.get(SNOW_BLOCK), 0, 0, 1),
-        new BlockPattern.PatternBlock(Block.get(SNOW_BLOCK), 0, 0, 2)
+        new BlockPattern.PatternBlock(CARVED_PUMPKIN, -1, 0, 0),
+        new BlockPattern.PatternBlock(SNOW_BLOCK, 0, 0, 1),
+        new BlockPattern.PatternBlock(SNOW_BLOCK, 0, 0, 2)
     );
 
     @PowerNukkitOnly
@@ -157,8 +157,8 @@ public class BlockPumpkin extends BlockSolidMeta implements Faceable {
     }
     
     private boolean spawnIronGolem(Location location) {
-    	Entity entity = Entity.createEntity("IronGolem", location.clone().subtract(-0.5, 2, -0.5));
-    	CreatureSpawnEvent creatureSpawnEvent = new CreatureSpawnEvent(entity.getNetworkId(), location.clone().subtract(-0.5, 2, -0.5), SpawnReason.BUILD_IRONGOLEM);
+  	Entity entity = Entity.createEntity("IronGolem", location.clone().subtract(-0.5, 2, -0.5));
+  	CreatureSpawnEvent creatureSpawnEvent = new CreatureSpawnEvent(entity.getNetworkId(), location.clone().subtract(-0.5, 2, -0.5), SpawnReason.BUILD_IRONGOLEM);
         Server.getInstance().getPluginManager().callEvent(creatureSpawnEvent);
 
         if (!creatureSpawnEvent.isCancelled()) {
@@ -175,11 +175,10 @@ public class BlockPumpkin extends BlockSolidMeta implements Faceable {
         CreatureSpawnEvent creatureSpawnEvent = new CreatureSpawnEvent(entity.getNetworkId(), location.clone().subtract(-0.5, 2, -0.5), SpawnReason.BUILD_IRONGOLEM);
         Server.getInstance().getPluginManager().callEvent(creatureSpawnEvent);
 
-        if (creatureSpawnEvent.isCancelled()) {
-            return;
-        }
-        if (SNOWMAN_PATTERN.matches(location, true, 0, 0)) {
-            entity.spawnToAll();
+        if (!creatureSpawnEvent.isCancelled()) {
+            if (SNOWMAN_PATTERN.matches(location, true, 0, 0)) {
+                entity.spawnToAll();
+            }
         }
     }
 }

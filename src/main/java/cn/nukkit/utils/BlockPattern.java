@@ -1,7 +1,6 @@
 package cn.nukkit.utils;
 
 import cn.nukkit.level.Location;
-import cn.nukkit.item.Item;
 import cn.nukkit.block.Block;
 
 public class BlockPattern {
@@ -34,7 +33,7 @@ public class BlockPattern {
             int dxz = block.xz - xz,
                   dy = block.y - y;
             Location relative = location.clone().add(dxz * alignment.x, -dy, dxz * alignment.z);
-            if ((relative.getLevelBlock().getId() != block.getId() || relative.getLevelBlock().getDamage() != block.getDamage()) && block.getDamage() != -1) {
+            if (relative.getLevelBlock().getId() != block.getId() && block.getDamage() != -1) {
                 return null;
             }
             loc[i++] = relative;
@@ -57,28 +56,24 @@ public class BlockPattern {
 
     public static class PatternBlock {
 
-        private final Block block;
+        private final int id;
         private final int meta;
         private final int xz;
         private final int y;
 
-        public PatternBlock(Block block, int meta, int xz, int y) {
-            this.block = block;
+        public PatternBlock(int id, int meta, int xz, int y) {
+            this.id = id;
             this.meta = meta;
             this.xz = xz;
             this.y = y;
         }
         
         public int getId() {
-        	return this.block.getId();
+        	return this.id;
         }
         
         public int getDamage() {
         	return this.meta;
-        }
-
-        public boolean matches(Block block) {
-            return block.getId() == this.getId() && block.getDamage() == this.getDamage();
         }
     }
 }
