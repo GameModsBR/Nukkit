@@ -157,16 +157,17 @@ public class BlockPumpkin extends BlockSolidMeta implements Faceable {
     }
     
     private boolean spawnIronGolem(Location location) {
-  	Entity entity = Entity.createEntity("IronGolem", location.clone().subtract(-0.5, 2, -0.5));
-  	CreatureSpawnEvent creatureSpawnEvent = new CreatureSpawnEvent(entity.getNetworkId(), location.clone().subtract(-0.5, 2, -0.5), SpawnReason.BUILD_IRONGOLEM);
+        Entity entity = Entity.createEntity("IronGolem", location.clone().subtract(-0.5, 2, -0.5));
+        CreatureSpawnEvent creatureSpawnEvent = new CreatureSpawnEvent(entity.getNetworkId(), location.clone().subtract(-0.5, 2, -0.5), SpawnReason.BUILD_IRONGOLEM);
         Server.getInstance().getPluginManager().callEvent(creatureSpawnEvent);
 
-        if (!creatureSpawnEvent.isCancelled()) {
-        	if (IRONGOLEM_PATTERN.matches(location, true, 1, 0)) {
-                entity.spawnToAll();
-                return true;
-            }
+        if (creatureSpawnEvent.isCancelled()) {
+        	return false;
         }
+    	if (IRONGOLEM_PATTERN.matches(location, true, 1, 0)) {
+            entity.spawnToAll();
+            return true;
+         }
         return false;
     }
 
