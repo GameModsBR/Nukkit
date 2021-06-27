@@ -5,6 +5,7 @@ import cn.nukkit.api.PowerNukkitOnly;
 import cn.nukkit.api.Since;
 import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockID;
+import cn.nukkit.block.BlockLiquid;
 import cn.nukkit.block.BlockTNT;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockentity.BlockEntityShulkerBox;
@@ -49,8 +50,10 @@ public class Explosion {
     private final double stepLen = 0.3d;
 
     private final Object what;
+    
+    private final boolean underwater;
     private boolean doesDamage = true;
-
+  
     public Explosion(Position center, double size, Entity what) {
         this(center, size, (Object) what);
     }
@@ -68,6 +71,15 @@ public class Explosion {
         this.source = center;
         this.size = Math.max(size, 0);
         this.what = what;
+        this.underwater = false;
+    }
+    
+    public Explosion(Position center, double size, Entity what, boolean underwater) {
+        this.level = center.getLevel();
+        this.source = center;
+        this.size = Math.max(size, 0);
+        this.what = what;
+        this.underwater = underwater;
     }
 
     @PowerNukkitOnly
@@ -167,7 +179,7 @@ public class Explosion {
                             }
                             Block block = this.level.getBlock(vBlock);
 
-                            if (block.getId() != 0) {
+                            if (block.getId() != 0 && (this.underwater && !(block instanceof BlockLiquid))) {
                                 Block layer1 = block.getLevelBlockAtLayer(1);
                                 double resistance = Math.max(block.getResistance(), layer1.getResistance());
                                 blastForce -= (resistance / 5 + 0.3d) * this.stepLen;

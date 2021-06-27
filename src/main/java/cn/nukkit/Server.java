@@ -172,6 +172,8 @@ public class Server {
 
     private boolean redstoneEnabled = true;
 
+    private boolean educationEditionEnabled = false;
+
     private RCON rcon;
 
     private EntityMetadataStore entityMetadata;
@@ -582,6 +584,7 @@ public class Server {
         this.safeSpawn = this.getConfig().getBoolean("settings.safe-spawn", true);
         this.forceSkinTrusted = this.getConfig().getBoolean("player.force-skin-trusted", false);
         this.checkMovement = this.getConfig().getBoolean("player.check-movement", true);
+        this.educationEditionEnabled = this.getConfig("level-settings.education-edition", false);
 
         this.scheduler = new ServerScheduler();
 
@@ -2285,6 +2288,14 @@ public class Server {
         this.redstoneEnabled = redstoneEnabled;
     }
 
+    public boolean isEducationEditionEnabled() {
+        return educationEditionEnabled;
+    }
+
+    public void setEducationEditionEnabled(boolean educationEditionEnabled) {
+        this.educationEditionEnabled = educationEditionEnabled;
+    }
+
     public Network getNetwork() {
         return network;
     }
@@ -2488,13 +2499,16 @@ public class Server {
     private void registerEntities() {
         Entity.registerEntity("Lightning", EntityLightning.class);
         Entity.registerEntity("Arrow", EntityArrow.class);
+        Entity.registerEntity("Balloon", EntityBalloon.class);
         Entity.registerEntity("EnderPearl", EntityEnderPearl.class);
         Entity.registerEntity("FallingSand", EntityFallingBlock.class);
         Entity.registerEntity("Firework", EntityFirework.class);
         Entity.registerEntity("Item", EntityItem.class);
+        Entity.registerEntity("LeashKnot", EntityLeashKnot.class);
         Entity.registerEntity("Painting", EntityPainting.class);
         Entity.registerEntity("PrimedTnt", EntityPrimedTNT.class);
         Entity.registerEntity("Snowball", EntitySnowball.class);
+        Entity.registerEntity("TripodCamera", EntityTripodCamera.class);
         //Monsters
         Entity.registerEntity("Blaze", EntityBlaze.class);
         Entity.registerEntity("CaveSpider", EntityCaveSpider.class);
@@ -2547,6 +2561,7 @@ public class Server {
         Entity.registerEntity("Llama", EntityLlama.class);
         Entity.registerEntity("Mooshroom", EntityMooshroom.class);
         Entity.registerEntity("Mule", EntityMule.class);
+        Entity.registerEntity("NPC", EntityNPCEntity.class);
         Entity.registerEntity("Ocelot", EntityOcelot.class);
         Entity.registerEntity("Panda", EntityPanda.class);
         Entity.registerEntity("Parrot", EntityParrot.class);
@@ -2570,6 +2585,7 @@ public class Server {
         //Projectile
         Entity.registerEntity("AreaEffectCloud", EntityAreaEffectCloud.class);
         Entity.registerEntity("Egg", EntityEgg.class);
+        Entity.registerEntity("IceBomb", EntityIceBomb.class);
         Entity.registerEntity("LingeringPotion", EntityPotionLingering.class);
         Entity.registerEntity("ThrownExpBottle", EntityExpBottle.class);
         Entity.registerEntity("ThrownPotion", EntityPotion.class);

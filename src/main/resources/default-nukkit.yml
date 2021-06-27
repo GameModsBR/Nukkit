@@ -34,6 +34,7 @@ level-settings:
  base-tick-rate: 1
  always-tick-players: false
  tick-redstone: true
+ education-edition: false
 
 chunk-sending:
  per-tick: 4

@@ -161,6 +161,16 @@ public class BlockSapling extends BlockFlowable {
             this.grow();
 
             return true;
+        } else if (item.getId() == Item.RAPID_FERTILIZER) {
+            if (player != null && (player.gamemode & 0x01) == 0) {
+                item.count--;
+            }
+
+            this.level.addParticle(new BoneMealParticle(this));
+            
+            this.grow();
+
+            return true;
         }
         return false;
     }

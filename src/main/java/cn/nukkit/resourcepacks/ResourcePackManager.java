@@ -21,6 +21,22 @@ public class ResourcePackManager {
         }
 
         List<ResourcePack> loadedResourcePacks = new ArrayList<>();
+        
+        if (Server.getInstance().isEducationEditionEnabled()) {
+            // Chemistry Resource Pack
+            ResourcePack resourcePack = new ChemistryResourcePack();
+            loadedResourcePacks.add(resourcePack);
+            this.resourcePacksById.put(resourcePack.getPackId(), resourcePack);
+            
+            // Chemistry Behavior Pack
+            ResourcePack behaviorPack = new ChemistryBehaviorPack();
+            loadedResourcePacks.add(behaviorPack);
+            this.resourcePacksById.put(behaviorPack.getPackId(), behaviorPack);
+            
+            Server.getInstance().getLogger().info(Server.getInstance().getLanguage()
+                .translateString("nukkit.resources.chemistry.success"));
+        }
+        
         for (File pack : path.listFiles()) {
             try {
                 ResourcePack resourcePack = null;

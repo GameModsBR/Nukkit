@@ -81,9 +81,10 @@ public class CraftingManager {
     }
 
     public CraftingManager() {
-        InputStream recipesStream = Server.class.getClassLoader().getResourceAsStream("recipes.json");
+        String recipeFileName = (Server.getInstance().isEducationEditionEnabled()) ? "recipes_educationedition.json" : "recipes.json";
+        InputStream recipesStream = Server.class.getClassLoader().getResourceAsStream(recipeFileName);
         if (recipesStream == null) {
-            throw new AssertionError("Unable to find recipes.json");
+            throw new AssertionError("Unable to find " + recipeFileName);
         }
 
         registerSmithingRecipes();
