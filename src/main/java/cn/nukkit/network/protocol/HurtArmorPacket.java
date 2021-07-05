@@ -1,5 +1,7 @@
 package cn.nukkit.network.protocol;
 
+import cn.nukkit.api.DeprecationDetails;
+import cn.nukkit.api.Since;
 import lombok.ToString;
 
 /**
@@ -10,7 +12,10 @@ public class HurtArmorPacket extends DataPacket {
 
     public static final byte NETWORK_ID = ProtocolInfo.HURT_ARMOR_PACKET;
 
+    @Since("1.3.0.0-PN")
     public int cause;
+
+    @Since("1.3.0.0-PN")
     public int damage;
 
     @Override
@@ -22,7 +27,7 @@ public class HurtArmorPacket extends DataPacket {
     public void encode() {
         this.reset();
         this.putVarInt(this.cause);
-        this.putVarInt(this.damage);
+        this.putVarInt(damage);
     }
 
     @Override

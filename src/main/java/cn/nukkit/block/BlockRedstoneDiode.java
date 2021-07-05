@@ -1,18 +1,26 @@
 package cn.nukkit.block;
 
 import cn.nukkit.Player;
+import cn.nukkit.api.PowerNukkitDifference;
+import cn.nukkit.api.PowerNukkitOnly;
 import cn.nukkit.event.redstone.RedstoneUpdateEvent;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.Level;
+import cn.nukkit.math.AxisAlignedBB;
 import cn.nukkit.math.BlockFace;
+import cn.nukkit.math.SimpleAxisAlignedBB;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.utils.BlockColor;
 import cn.nukkit.utils.Faceable;
+import cn.nukkit.utils.RedstoneComponent;
+
+import javax.annotation.Nonnull;
 
 /**
  * @author CreeperFace
  */
-public abstract class BlockRedstoneDiode extends BlockFlowable implements Faceable {
+@PowerNukkitDifference(info = "Implements RedstoneComponent and uses methods from it.", since = "1.4.0.0-PN")
+public abstract class BlockRedstoneDiode extends BlockFlowable implements RedstoneComponent, Faceable {
 
     protected boolean isPowered = false;
 
@@ -24,35 +32,62 @@ public abstract class BlockRedstoneDiode extends BlockFlowable implements Faceab
         super(meta);
     }
 
+    @PowerNukkitOnly
+    @Override
+    public int getWaterloggingLevel() {
+        return 2;
+    }
+
+    @Override
+    public boolean canBeFlowedInto() {
+        return false;
+    }
+
     @Override
     public boolean onBreak(Item item) {
         Vector3 pos = getLocation();
         this.level.setBlock(this, Block.get(BlockID.AIR), true, true);
 
-        for (BlockFace face : BlockFace.values()) {
-            this.level.updateAroundRedstone(pos.getSide(face), null);
+        if (this.level.getServer().isRedstoneEnabled()) {
+            updateAllAroundRedstone();
         }
         return true;
     }
 
+    @PowerNukkitDifference(info = "Allow to be placed on top of the walls", since = "1.3.0.0-PN")
+    @PowerNukkitDifference(since = "1.4.0.0-PN", info = "Fixed support logic")
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, double fx, double fy, double fz, Player player) {
-        if (block.getSide(BlockFace.DOWN).isTransparent()) {
+    public boolean place(@Nonnull Item item, @Nonnull Block block, @Nonnull Block target, @Nonnull BlockFace face, double fx, double fy, double fz, Player player) {
+        if (!isSupportValid(down())) {
             return false;
         }
 
         this.setDamage(player != null ? player.getDirection().getOpposite().getHorizontalIndex() : 0);
-        this.level.setBlock(block, this, true, true);
+        if (!this.level.setBlock(block, this, true, true)) {
+            return false;
+        }
 
-        if (shouldBePowered()) {
-            this.level.scheduleUpdate(this, 1);
+        if (this.level.getServer().isRedstoneEnabled()) {
+            if (shouldBePowered()) {
+                this.level.scheduleUpdate(this, 1);
+            }
         }
         return true;
     }
+    
+    protected boolean isSupportValid(Block support) {
+        return BlockLever.isSupportValid(support, BlockFace.UP) || support instanceof BlockCauldron;
+    }
 
+    @PowerNukkitDifference(info = "Allow to be placed on top of the walls", since = "1.3.0.0-PN")
+    @PowerNukkitDifference(since = "1.4.0.0-PN", info = "Fixed support logic")
     @Override
     public int onUpdate(int type) {
         if (type == Level.BLOCK_UPDATE_SCHEDULED) {
+            if (!this.level.getServer().isRedstoneEnabled()) {
+                return 0;
+            }
+
             if (!this.isLocked()) {
                 Vector3 pos = getLocation();
                 boolean shouldBePowered = this.shouldBePowered();
@@ -60,30 +95,34 @@ public abstract class BlockRedstoneDiode extends BlockFlowable implements Faceab
                 if (this.isPowered && !shouldBePowered) {
                     this.level.setBlock(pos, this.getUnpowered(), true, true);
 
-                    this.level.updateAroundRedstone(this.getLocation().getSide(getFacing().getOpposite()), null);
+                    Block side = this.getSide(getFacing().getOpposite());
+                    side.onUpdate(Level.BLOCK_UPDATE_REDSTONE);
+                    RedstoneComponent.updateAroundRedstone(side);
                 } else if (!this.isPowered) {
                     this.level.setBlock(pos, this.getPowered(), true, true);
-                    this.level.updateAroundRedstone(this.getLocation().getSide(getFacing().getOpposite()), null);
+                    Block side = this.getSide(getFacing().getOpposite());
+                    side.onUpdate(Level.BLOCK_UPDATE_REDSTONE);
+                    RedstoneComponent.updateAroundRedstone(side);
 
                     if (!shouldBePowered) {
-//                        System.out.println("schedule update 2");
                         level.scheduleUpdate(getPowered(), this, this.getDelay());
                     }
                 }
             }
         } else if (type == Level.BLOCK_UPDATE_NORMAL || type == Level.BLOCK_UPDATE_REDSTONE) {
-            // Redstone event
-            RedstoneUpdateEvent ev = new RedstoneUpdateEvent(this);
-            getLevel().getServer().getPluginManager().callEvent(ev);
-            if (ev.isCancelled()) {
-                return 0;
-            }
-            if (type == Level.BLOCK_UPDATE_NORMAL && this.getSide(BlockFace.DOWN).isTransparent()) {
+            if (type == Level.BLOCK_UPDATE_NORMAL && !isSupportValid(down())) {
                 this.level.useBreakOn(this);
                 return Level.BLOCK_UPDATE_NORMAL;
-            } else {
+            } else if (this.level.getServer().isRedstoneEnabled()) {
+                // Redstone event
+                RedstoneUpdateEvent ev = new RedstoneUpdateEvent(this);
+                getLevel().getServer().getPluginManager().callEvent(ev);
+                if (ev.isCancelled()) {
+                    return 0;
+                }
+
                 this.updateState();
-                return Level.BLOCK_UPDATE_NORMAL;
+                return type;
             }
         }
         return 0;
@@ -198,6 +237,11 @@ public abstract class BlockRedstoneDiode extends BlockFlowable implements Faceab
         BlockFace side = getFacing().getOpposite();
         Block block = this.getSide(side);
         return block instanceof BlockRedstoneDiode && ((BlockRedstoneDiode) block).getFacing() != side;
+    }
+
+    @Override
+    protected AxisAlignedBB recalculateBoundingBox() {
+        return new SimpleAxisAlignedBB(this.x, this.y, this.z, this.x + 1, this.y + 0.125, this.z + 1);
     }
 
     @Override

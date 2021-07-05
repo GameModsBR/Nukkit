@@ -3,8 +3,7 @@ package cn.nukkit.block;
 import cn.nukkit.math.AxisAlignedBB;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * @author MagicDroidX (Nukkit Project)
  */
 public abstract class BlockFlowable extends BlockTransparentMeta {
 
@@ -34,6 +33,16 @@ public abstract class BlockFlowable extends BlockTransparentMeta {
 
     @Override
     public boolean isSolid() {
+        return false;
+    }
+
+    @Override
+    public boolean breaksWhenMoved() {
+        return true;
+    }
+
+    @Override
+    public boolean sticksToPiston() {
         return false;
     }
 

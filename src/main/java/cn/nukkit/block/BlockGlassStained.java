@@ -1,26 +1,42 @@
 package cn.nukkit.block;
 
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
+import cn.nukkit.blockproperty.BlockProperties;
+import cn.nukkit.blockproperty.CommonBlockProperties;
 import cn.nukkit.utils.BlockColor;
 import cn.nukkit.utils.DyeColor;
 
+import javax.annotation.Nonnull;
+
+import static cn.nukkit.blockproperty.CommonBlockProperties.COLOR;
+
 /**
- * Created by CreeperFace on 7.8.2017.
+ * @author CreeperFace
+ * @since 7.8.2017
  */
 public class BlockGlassStained extends BlockGlass {
 
-    private int meta;
+    @PowerNukkitOnly
+    @Since("1.5.0.0-PN")
+    public static final BlockProperties PROPERTIES = CommonBlockProperties.COLOR_BLOCK_PROPERTIES;
 
     public BlockGlassStained() {
-        this(0);
+        // Does nothing
     }
 
     public BlockGlassStained(int meta) {
-        this.meta = meta;
+        if (meta != 0) {
+            getMutableState().setDataStorageFromInt(meta, true);
+        }
     }
 
+    @Since("1.4.0.0-PN")
+    @PowerNukkitOnly
+    @Nonnull
     @Override
-    public int getFullId() {
-        return (getId() << 4) + getDamage();
+    public BlockProperties getProperties() {
+        return PROPERTIES;
     }
 
     @Override
@@ -35,21 +51,18 @@ public class BlockGlassStained extends BlockGlass {
 
     @Override
     public BlockColor getColor() {
-        return DyeColor.getByWoolData(getDamage()).getColor();
+        return getDyeColor().getColor();
     }
 
+    @Nonnull
     public DyeColor getDyeColor() {
-        return DyeColor.getByWoolData(getDamage());
+        return getPropertyValue(COLOR);
     }
 
-    @Override
-    public final int getDamage() {
-        return this.meta;
-    }
-
-    @Override
-    public final void setDamage(int meta) {
-        this.meta = meta;
+    @PowerNukkitOnly
+    @Since("1.5.0.0-PN")
+    public void setDyeColor(@Nonnull DyeColor color) {
+        setPropertyValue(COLOR, color);
     }
 
     @Override

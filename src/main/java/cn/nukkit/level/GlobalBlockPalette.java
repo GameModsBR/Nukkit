@@ -1,76 +1,33 @@
 package cn.nukkit.level;
 
-import cn.nukkit.Server;
-import cn.nukkit.nbt.NBTIO;
-import cn.nukkit.nbt.tag.CompoundTag;
-import cn.nukkit.nbt.tag.ListTag;
-import com.google.common.io.ByteStreams;
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import cn.nukkit.api.DeprecationDetails;
+import cn.nukkit.block.Block;
+import cn.nukkit.blockstate.BlockStateRegistry;
 import lombok.extern.log4j.Log4j2;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteOrder;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.concurrent.atomic.AtomicInteger;
-
+@Deprecated
+@DeprecationDetails(reason = "Reimplemented using BlockState", replaceWith = "BlockStateRegistry", since = "1.4.0.0-PN")
 @Log4j2
 public class GlobalBlockPalette {
-    private static final Int2IntMap legacyToRuntimeId = new Int2IntOpenHashMap();
-    private static final Int2IntMap runtimeIdToLegacy = new Int2IntOpenHashMap();
-    private static final AtomicInteger runtimeIdAllocator = new AtomicInteger(0);
+    @Deprecated
+    @DeprecationDetails(reason = "Public mutable array", replaceWith = "BlockStateRegistry.getBlockPaletteBytes() or BlockStateRegistry.copyBlockPaletteBytes()", since = "1.4.0.0-PN")
+    public static final byte[] BLOCK_PALETTE = BlockStateRegistry.getBlockPaletteBytes();
 
-    static {
-        legacyToRuntimeId.defaultReturnValue(-1);
-        runtimeIdToLegacy.defaultReturnValue(-1);
-
-        ListTag<CompoundTag> tag;
-        try (InputStream stream = Server.class.getClassLoader().getResourceAsStream("runtime_block_states.dat")) {
-            if (stream == null) {
-                throw new AssertionError("Unable to locate block state nbt");
-            }
-            //noinspection unchecked
-            tag = (ListTag<CompoundTag>) NBTIO.readTag(new ByteArrayInputStream(ByteStreams.toByteArray(stream)), ByteOrder.LITTLE_ENDIAN, false);
-        } catch (IOException e) {
-            throw new AssertionError("Unable to load block palette", e);
-        }
-
-        for (CompoundTag state : tag.getAll()) {
-            int runtimeId = runtimeIdAllocator.getAndIncrement();
-            if (!state.contains("LegacyStates")) continue;
-
-            List<CompoundTag> legacyStates = state.getList("LegacyStates", CompoundTag.class).getAll();
-
-            // Resolve to first legacy id
-            CompoundTag firstState = legacyStates.get(0);
-            runtimeIdToLegacy.put(runtimeId, firstState.getInt("id") << 6 | firstState.getShort("val"));
-
-            for (CompoundTag legacyState : legacyStates) {
-                int legacyId = legacyState.getInt("id") << 6 | legacyState.getShort("val");
-                legacyToRuntimeId.put(legacyId, runtimeId);
-            }
-        }
-    }
-
+    @Deprecated
+    @DeprecationDetails(reason = "Limited to 32 bits meta", since = "1.4.0.0-PN", replaceWith = "BlockStateRegistry.getRuntimeId(BlockState)")
     public static int getOrCreateRuntimeId(int id, int meta) {
-        int legacyId = id << 6 | meta;
-        int runtimeId = legacyToRuntimeId.get(legacyId);
-        if (runtimeId == -1) {
-            runtimeId = legacyToRuntimeId.get(id << 6);
-            if (runtimeId == -1) {
-                log.info("Creating new runtime ID for unknown block {}", id);
-                runtimeId = runtimeIdAllocator.getAndIncrement();
-                legacyToRuntimeId.put(id << 6, runtimeId);
-                runtimeIdToLegacy.put(runtimeId, id << 6);
-            }
-        }
-        return runtimeId;
+        return BlockStateRegistry.getRuntimeId(id, meta);
     }
 
-    public static int getOrCreateRuntimeId(int legacyId) throws NoSuchElementException {
-        return getOrCreateRuntimeId(legacyId >> 4, legacyId & 0xf);
+    @Deprecated
+    @DeprecationDetails(reason = "The meta is limited to 32 bits", replaceWith = "BlockStateRegistry.getRuntimeId(BlockState)", since = "1.3.0.0-PN")
+    public static int getOrCreateRuntimeId(int legacyId) {
+        return getOrCreateRuntimeId(legacyId >> Block.DATA_BITS, legacyId & Block.DATA_MASK);
+    }
+
+    @Deprecated
+    @DeprecationDetails(reason = "Moved to BlockStateRegistry", replaceWith = "BlockStateRegistry.getPersistenceName(int)", since = "1.3.0.0-PN")
+    public static String getName(int blockId) {
+        return BlockStateRegistry.getPersistenceName(blockId);
     }
 }

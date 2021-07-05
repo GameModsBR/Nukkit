@@ -3,8 +3,7 @@ package cn.nukkit.item.enchantment;
 import cn.nukkit.item.Item;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * @author MagicDroidX (Nukkit Project)
  */
 public class EnchantmentEfficiency extends Enchantment {
     protected EnchantmentEfficiency() {
@@ -30,4 +29,13 @@ public class EnchantmentEfficiency extends Enchantment {
     public boolean canEnchant(Item item) {
         return item.isShears() || super.canEnchant(item);
     }
+    
+    @Override
+    public boolean isItemAcceptable(Item item) {
+        if (item.isShears()) {
+            return true;
+        }
+        return super.isItemAcceptable(item);
+    }
+
 }

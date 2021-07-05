@@ -1,8 +1,13 @@
 package cn.nukkit.block;
 
 import cn.nukkit.Player;
+import cn.nukkit.api.PowerNukkitDifference;
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockentity.BlockEntityChest;
+import cn.nukkit.blockproperty.BlockProperties;
+import cn.nukkit.blockproperty.CommonBlockProperties;
 import cn.nukkit.inventory.ContainerInventory;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemBlock;
@@ -15,13 +20,19 @@ import cn.nukkit.nbt.tag.Tag;
 import cn.nukkit.utils.BlockColor;
 import cn.nukkit.utils.Faceable;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
- * author: Angelic47
- * Nukkit Project
+ * @author Angelic47 (Nukkit Project)
  */
-public class BlockChest extends BlockTransparentMeta implements Faceable {
+@PowerNukkitDifference(since = "1.4.0.0-PN", info = "Implements BlockEntityHolder only in PowerNukkit")
+public class BlockChest extends BlockTransparentMeta implements Faceable, BlockEntityHolder<BlockEntityChest> {
+
+    @PowerNukkitOnly
+    @Since("1.5.0.0-PN")
+    public static final BlockProperties PROPERTIES = CommonBlockProperties.FACING_DIRECTION_BLOCK_PROPERTIES;
 
     public BlockChest() {
         this(0);
@@ -29,6 +40,22 @@ public class BlockChest extends BlockTransparentMeta implements Faceable {
 
     public BlockChest(int meta) {
         super(meta);
+    }
+
+    @Since("1.4.0.0-PN")
+    @PowerNukkitOnly
+    @Nonnull
+    @Override
+    public Class<? extends BlockEntityChest> getBlockEntityClass() {
+        return BlockEntityChest.class;
+    }
+
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    @Nonnull
+    @Override
+    public String getBlockEntityType() {
+        return BlockEntity.CHEST;
     }
 
     @Override
@@ -41,6 +68,14 @@ public class BlockChest extends BlockTransparentMeta implements Faceable {
         return CHEST;
     }
 
+    @Since("1.4.0.0-PN")
+    @PowerNukkitOnly
+    @Nonnull
+    @Override
+    public BlockProperties getProperties() {
+        return PROPERTIES;
+    }
+
     @Override
     public String getName() {
         return "Chest";
@@ -49,6 +84,12 @@ public class BlockChest extends BlockTransparentMeta implements Faceable {
     @Override
     public double getHardness() {
         return 2.5;
+    }
+
+    @PowerNukkitOnly
+    @Override
+    public int getWaterloggingLevel() {
+        return 1;
     }
 
     @Override
@@ -93,7 +134,7 @@ public class BlockChest extends BlockTransparentMeta implements Faceable {
 
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, double fx, double fy, double fz, Player player) {
+    public boolean place(@Nonnull Item item, @Nonnull Block block, @Nonnull Block target, @Nonnull BlockFace face, double fx, double fy, double fz, @Nullable Player player) {
         BlockEntityChest chest = null;
         int[] faces = {2, 5, 3, 4};
         this.setDamage(faces[player != null ? player.getDirection().getHorizontalIndex() : 0]);
@@ -114,13 +155,7 @@ public class BlockChest extends BlockTransparentMeta implements Faceable {
             }
         }
 
-        this.getLevel().setBlock(block, this, true, true);
-        CompoundTag nbt = new CompoundTag("")
-                .putList(new ListTag<>("Items"))
-                .putString("id", BlockEntity.CHEST)
-                .putInt("x", (int) this.x)
-                .putInt("y", (int) this.y)
-                .putInt("z", (int) this.z);
+        CompoundTag nbt = new CompoundTag().putList(new ListTag<>("Items"));
 
         if (item.hasCustomName()) {
             nbt.putString("CustomName", item.getCustomName());
@@ -132,9 +167,8 @@ public class BlockChest extends BlockTransparentMeta implements Faceable {
                 nbt.put(tag.getKey(), tag.getValue());
             }
         }
-
-        BlockEntityChest blockEntity = (BlockEntityChest) BlockEntity.createBlockEntity(BlockEntity.CHEST, this.getLevel().getChunk((int) (this.x) >> 4, (int) (this.z) >> 4), nbt);
-
+        
+        BlockEntityChest blockEntity = BlockEntityHolder.setBlockAndCreateEntity(this, true, true, nbt);
         if (blockEntity == null) {
             return false;
         }
@@ -149,9 +183,9 @@ public class BlockChest extends BlockTransparentMeta implements Faceable {
 
     @Override
     public boolean onBreak(Item item) {
-        BlockEntity t = this.getLevel().getBlockEntity(this);
-        if (t instanceof BlockEntityChest) {
-            ((BlockEntityChest) t).unpair();
+        BlockEntityChest chest = getBlockEntity();
+        if (chest != null) {
+            chest.unpair();
         }
         this.getLevel().setBlock(this, Block.get(BlockID.AIR), true, true);
 
@@ -159,39 +193,23 @@ public class BlockChest extends BlockTransparentMeta implements Faceable {
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
-        if (player != null) {
-            Block top = up();
-            if (!top.isTransparent()) {
-                return true;
-            }
-
-            BlockEntity t = this.getLevel().getBlockEntity(this);
-            BlockEntityChest chest;
-            if (t instanceof BlockEntityChest) {
-                chest = (BlockEntityChest) t;
-            } else {
-                CompoundTag nbt = new CompoundTag("")
-                        .putList(new ListTag<>("Items"))
-                        .putString("id", BlockEntity.CHEST)
-                        .putInt("x", (int) this.x)
-                        .putInt("y", (int) this.y)
-                        .putInt("z", (int) this.z);
-                chest = (BlockEntityChest) BlockEntity.createBlockEntity(BlockEntity.CHEST, this.getLevel().getChunk((int) (this.x) >> 4, (int) (this.z) >> 4), nbt);
-                if (chest == null) {
-                    return false;
-                }
-            }
-
-            if (chest.namedTag.contains("Lock") && chest.namedTag.get("Lock") instanceof StringTag) {
-                if (!chest.namedTag.getString("Lock").equals(item.getCustomName())) {
-                    return true;
-                }
-            }
-
-            player.addWindow(chest.getInventory());
+    public boolean onActivate(@Nonnull Item item, Player player) {
+        if (player == null) {
+            return false;
+        }
+        
+        Block top = up();
+        if (!top.isTransparent()) {
+            return false;
         }
 
+        BlockEntityChest chest = getOrCreateBlockEntity();
+        if (chest.namedTag.contains("Lock") && chest.namedTag.get("Lock") instanceof StringTag 
+                && !chest.namedTag.getString("Lock").equals(item.getCustomName())) {
+            return false;
+        }
+
+        player.addWindow(chest.getInventory());
         return true;
     }
 
@@ -200,15 +218,17 @@ public class BlockChest extends BlockTransparentMeta implements Faceable {
         return BlockColor.WOOD_BLOCK_COLOR;
     }
 
+    @Override
     public boolean hasComparatorInputOverride() {
         return true;
     }
 
+    @Override
     public int getComparatorInputOverride() {
-        BlockEntity blockEntity = this.level.getBlockEntity(this);
+        BlockEntityChest blockEntity = getBlockEntity();
 
-        if (blockEntity instanceof BlockEntityChest) {
-            return ContainerInventory.calculateRedstone(((BlockEntityChest) blockEntity).getInventory());
+        if (blockEntity != null) {
+            return ContainerInventory.calculateRedstone(blockEntity.getInventory());
         }
 
         return super.getComparatorInputOverride();

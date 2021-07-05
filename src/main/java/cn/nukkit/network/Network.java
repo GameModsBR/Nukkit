@@ -1,8 +1,10 @@
 package cn.nukkit.network;
 
-import cn.nukkit.Nukkit;
 import cn.nukkit.Player;
 import cn.nukkit.Server;
+import cn.nukkit.api.DeprecationDetails;
+import cn.nukkit.api.PowerNukkitDifference;
+import cn.nukkit.api.Since;
 import cn.nukkit.nbt.stream.FastByteArrayOutputStream;
 import cn.nukkit.network.protocol.*;
 import cn.nukkit.utils.BinaryStream;
@@ -29,8 +31,7 @@ import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * @author MagicDroidX (Nukkit Project)
  */
 @Log4j2
 public class Network {
@@ -69,6 +70,7 @@ public class Network {
         this.server = server;
     }
 
+    @Since("1.3.0.0-PN")
     public static byte[] inflateRaw(byte[] data) throws IOException, DataFormatException {
         Inflater inflater = INFLATER_RAW.get();
         try {
@@ -91,6 +93,7 @@ public class Network {
         }
     }
 
+    @Since("1.3.0.0-PN")
     public static byte[] deflateRaw(byte[] data, int level) throws IOException {
         Deflater deflater = DEFLATER_RAW.get();
         try {
@@ -111,6 +114,7 @@ public class Network {
         }
     }
 
+    @Since("1.3.0.0-PN")
     public static byte[] deflateRaw(byte[][] datas, int level) throws IOException {
         Deflater deflater = DEFLATER_RAW.get();
         try {
@@ -164,13 +168,9 @@ public class Network {
             try {
                 interfaz.process();
             } catch (Exception e) {
-                if (Nukkit.DEBUG > 1) {
-                    this.server.getLogger().logException(e);
-                }
-
+                log.fatal(this.server.getLanguage().translateString("nukkit.server.networkError", interfaz.getClass().getName(), Utils.getExceptionMessage(e)), e);
                 interfaz.emergencyShutdown();
                 this.unregisterInterface(interfaz);
-                log.fatal(this.server.getLanguage().translateString("nukkit.server.networkError", new String[]{interfaz.getClass().getName(), Utils.getExceptionMessage(e)}));
             }
         }
     }
@@ -232,11 +232,11 @@ public class Network {
         }
     }
 
+    @Since("1.4.0.0-PN")
     public void processBatch(byte[] payload, Collection<DataPacket> packets) throws ProtocolException {
         byte[] data;
         try {
             data = Network.inflateRaw(payload);
-            //data = Zlib.inflate(packet.payload, 2 * 1024 * 1024); // Max 2MB
         } catch (Exception e) {
             log.debug("Exception while inflating batch packet", e);
             return;
@@ -279,9 +279,7 @@ public class Network {
                 }
             }
         } catch (Exception e) {
-            if (log.isDebugEnabled()) {
-                log.debug("Error whilst decoding batch packet", e);
-            }
+            log.debug("Error whilst processing {} batched packets", packets.size());
         }
     }
 
@@ -291,18 +289,40 @@ public class Network {
      *
      * @param packets
      */
+    @PowerNukkitDifference(info = "Handles exception if on of the packets in the list fails")
     public void processPackets(Player player, List<DataPacket> packets) {
         if (packets.isEmpty()) return;
-        packets.forEach(player::handleDataPacket);
+        packets.forEach(p-> {
+            try {
+                player.handleDataPacket(p);
+            } catch (Exception e) {
+                if (log.isWarnEnabled()) {
+                    log.warn("Error whilst processing the packet {}:{} for {} (full data: {})",
+                            p.pid(), p.getClass().getSimpleName(),
+                            player.getName(), p.toString(),
+                            e
+                    );
+                }
+            }
+        });
     }
 
+    @Deprecated
+    @DeprecationDetails(since = "1.4.0.0-PN", by = "Cloudburst Nukkit", 
+            reason = "Changed the id to int without backward compatibility", 
+            replaceWith = "getPacket(int id)")
+    public DataPacket getPacket(byte id) {
+        return getPacket((int) id);
+    }
+    
+    @Since("1.4.0.0-PN")
     public DataPacket getPacket(int id) {
         Class<? extends DataPacket> clazz = this.packetPool[id];
         if (clazz != null) {
             try {
                 return clazz.newInstance();
             } catch (Exception e) {
-                Server.getInstance().getLogger().logException(e);
+                log.error("Error while creating a class for the packet id {}", id, e);
             }
         }
         return null;
@@ -439,10 +459,18 @@ public class Network {
         this.registerPacket(ProtocolInfo.CREATIVE_CONTENT_PACKET, CreativeContentPacket.class);
         this.registerPacket(ProtocolInfo.DEBUG_INFO_PACKET, DebugInfoPacket.class);
         this.registerPacket(ProtocolInfo.EMOTE_LIST_PACKET, EmoteListPacket.class);
+        this.registerPacket(ProtocolInfo.ITEM_STACK_REQUEST_PACKET, ItemStackRequestPacket.class);
+        this.registerPacket(ProtocolInfo.ITEM_STACK_RESPONSE_PACKET, ItemStackResponsePacket.class);
         this.registerPacket(ProtocolInfo.PACKET_VIOLATION_WARNING_PACKET, PacketViolationWarningPacket.class);
         this.registerPacket(ProtocolInfo.PLAYER_ARMOR_DAMAGE_PACKET, PlayerArmorDamagePacket.class);
         this.registerPacket(ProtocolInfo.PLAYER_ENCHANT_OPTIONS_PACKET, PlayerEnchantOptionsPacket.class);
+        this.registerPacket(ProtocolInfo.POS_TRACKING_CLIENT_REQUEST_PACKET, PositionTrackingDBClientRequestPacket.class);
+        this.registerPacket(ProtocolInfo.POS_TRACKING_SERVER_BROADCAST_PACKET, PositionTrackingDBServerBroadcastPacket.class);
         this.registerPacket(ProtocolInfo.UPDATE_PLAYER_GAME_TYPE_PACKET, UpdatePlayerGameTypePacket.class);
         this.registerPacket(ProtocolInfo.FILTER_TEXT_PACKET, FilterTextPacket.class);
+        this.registerPacket(ProtocolInfo.ITEM_COMPONENT_PACKET, ItemComponentPacket.class);
+        this.registerPacket(ProtocolInfo.ADD_VOLUME_ENTITY, AddVolumeEntityPacket.class);
+        this.registerPacket(ProtocolInfo.REMOVE_VOLUME_ENTITY, RemoveVolumeEntityPacket.class);
+        this.registerPacket(ProtocolInfo.SYNC_ENTITY_PROPERTY, SyncEntityPropertyPacket.class);
     }
 }

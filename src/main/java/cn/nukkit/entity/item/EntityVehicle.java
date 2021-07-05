@@ -7,14 +7,15 @@ import cn.nukkit.entity.EntityRideable;
 import cn.nukkit.entity.data.IntEntityData;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
+import cn.nukkit.event.vehicle.VehicleDamageByEntityEvent;
 import cn.nukkit.event.vehicle.VehicleDamageEvent;
+import cn.nukkit.event.vehicle.VehicleDestroyByEntityEvent;
 import cn.nukkit.event.vehicle.VehicleDestroyEvent;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.nbt.tag.CompoundTag;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * @author MagicDroidX (Nukkit Project)
  */
 public abstract class EntityVehicle extends Entity implements EntityRideable, EntityInteractable {
 
@@ -48,7 +49,7 @@ public abstract class EntityVehicle extends Entity implements EntityRideable, En
 
     @Override
     public String getInteractButtonText() {
-        return "Mount";
+        return "action.interact.mount";
     }
 
     @Override
@@ -83,31 +84,52 @@ public abstract class EntityVehicle extends Entity implements EntityRideable, En
 
     @Override
     public boolean attack(EntityDamageEvent source) {
-        VehicleDamageEvent event = new VehicleDamageEvent(this, source.getEntity(), source.getFinalDamage());
-        getServer().getPluginManager().callEvent(event);
-        if (event.isCancelled()) {
-            return false;
-        }
 
         boolean instantKill = false;
 
         if (source instanceof EntityDamageByEntityEvent) {
-            Entity damager = ((EntityDamageByEntityEvent) source).getDamager();
-            instantKill = damager instanceof Player && ((Player) damager).isCreative();
+            final Entity damagingEntity = ((EntityDamageByEntityEvent) source).getDamager();
+
+            final VehicleDamageByEntityEvent byEvent = new VehicleDamageByEntityEvent(this, damagingEntity, source.getFinalDamage());
+
+            getServer().getPluginManager().callEvent(byEvent);
+
+            if(byEvent.isCancelled())
+                return false;
+
+            instantKill = damagingEntity instanceof Player && ((Player) damagingEntity).isCreative();
+        } else {
+
+            final VehicleDamageEvent damageEvent = new VehicleDamageEvent(this, source.getFinalDamage());
+
+            getServer().getPluginManager().callEvent(damageEvent);
+
+            if (damageEvent.isCancelled())
+                return false;
         }
 
         if (instantKill || getHealth() - source.getFinalDamage() < 1) {
-            VehicleDestroyEvent event2 = new VehicleDestroyEvent(this, source.getEntity());
-            getServer().getPluginManager().callEvent(event2);
+            if(source instanceof EntityDamageByEntityEvent) {
+                final Entity damagingEntity = ((EntityDamageByEntityEvent) source).getDamager();
+                final VehicleDestroyByEntityEvent byDestroyEvent = new VehicleDestroyByEntityEvent(this, damagingEntity);
 
-            if (event2.isCancelled()) {
-                return false;
+                getServer().getPluginManager().callEvent(byDestroyEvent);
+
+                if(byDestroyEvent.isCancelled())
+                    return false;
+            } else {
+
+                final VehicleDestroyEvent destroyEvent = new VehicleDestroyEvent(this);
+
+                getServer().getPluginManager().callEvent(destroyEvent);
+
+                if (destroyEvent.isCancelled())
+                    return false;
             }
         }
 
-        if (instantKill) {
+        if (instantKill)
             source.setDamage(1000);
-        }
 
         return super.attack(source);
     }

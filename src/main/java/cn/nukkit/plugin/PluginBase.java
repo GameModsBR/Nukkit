@@ -1,15 +1,22 @@
 package cn.nukkit.plugin;
 
 import cn.nukkit.Server;
+import cn.nukkit.api.PowerNukkitDifference;
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
 import cn.nukkit.command.Command;
 import cn.nukkit.command.CommandSender;
+import cn.nukkit.command.PluginCommand;
 import cn.nukkit.command.PluginIdentifiableCommand;
 import cn.nukkit.utils.Config;
 import cn.nukkit.utils.Utils;
 import com.google.common.base.Preconditions;
+import lombok.extern.log4j.Log4j2;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +31,7 @@ import java.util.LinkedHashMap;
  * @see cn.nukkit.plugin.PluginDescription
  * @since Nukkit 1.0 | Nukkit API 1.0.0
  */
+@Log4j2
 abstract public class PluginBase implements Plugin {
 
     private PluginLoader loader;
@@ -82,8 +90,12 @@ abstract public class PluginBase implements Plugin {
      * @param value {@code true}为加载，{@code false}为卸载。<br>{@code true} for enable, {@code false} for disable.
      * @since Nukkit 1.0 | Nukkit API 1.0.0
      */
+    @PowerNukkitDifference(info = "Made impossible to disable special the PowerNukkitPlugin", since = "1.3.0.0-PN")
     public final void setEnabled(boolean value) {
         if (isEnabled != value) {
+            if (!value && PowerNukkitPlugin.getInstance() == this) {
+                throw new UnsupportedOperationException("The PowerNukkitPlugin cannot be disabled");
+            }
             isEnabled = value;
             if (isEnabled) {
                 onEnable();
@@ -155,6 +167,7 @@ abstract public class PluginBase implements Plugin {
     /**
      * TODO: FINISH JAVADOC
      */
+    @Nullable
     public PluginIdentifiableCommand getCommand(String name) {
         PluginIdentifiableCommand command = this.getServer().getPluginCommand(name);
         if (command == null || !command.getPlugin().equals(this)) {
@@ -166,6 +179,17 @@ abstract public class PluginBase implements Plugin {
         } else {
             return null;
         }
+    }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    @Nullable
+    public PluginCommand<?> getPluginCommand(@Nonnull String name) {
+        PluginIdentifiableCommand command = getCommand(name);
+        if (command instanceof PluginCommand<?>) {
+            return (PluginCommand<?>) command;
+        }
+        return null;
     }
 
     @Override
@@ -206,7 +230,7 @@ abstract public class PluginBase implements Plugin {
                     return true;
                 }
             } catch (IOException e) {
-                Server.getInstance().getLogger().logException(e);
+                log.error("Error while saving resource {}, to {} (replace: {}, plugin:{})", filename, outputName, replace, getDescription().getName(), e);
             }
         }
         return false;
@@ -245,7 +269,7 @@ abstract public class PluginBase implements Plugin {
             try {
                 this.config.setDefault(yaml.loadAs(Utils.readFile(this.configFile), LinkedHashMap.class));
             } catch (IOException e) {
-                Server.getInstance().getLogger().logException(e);
+                log.error("Error while reloading configs for the plugin {}", getDescription().getName(), e);
             }
         }
     }

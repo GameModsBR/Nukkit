@@ -1,21 +1,39 @@
 package cn.nukkit.block;
 
 import cn.nukkit.Player;
+import cn.nukkit.api.PowerNukkitDifference;
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
+import cn.nukkit.blockproperty.ArrayBlockProperty;
+import cn.nukkit.blockproperty.BlockProperties;
+import cn.nukkit.blockproperty.value.DoublePlantType;
+import cn.nukkit.blockproperty.value.TallGrassType;
 import cn.nukkit.item.Item;
-import cn.nukkit.item.ItemSeedsWheat;
+import cn.nukkit.item.ItemID;
 import cn.nukkit.item.ItemTool;
+import cn.nukkit.item.enchantment.Enchantment;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.particle.BoneMealParticle;
 import cn.nukkit.math.BlockFace;
 import cn.nukkit.utils.BlockColor;
 
+import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * author: Angelic47
- * Nukkit Project
+ * @author Angelic47 (Nukkit Project)
  */
 public class BlockTallGrass extends BlockFlowable {
+
+    @PowerNukkitOnly
+    @Since("1.5.0.0-PN")
+    public static final ArrayBlockProperty<TallGrassType> TALL_GRASS_TYPE = new ArrayBlockProperty<>("tall_grass_type", true, TallGrassType.class);
+
+    @PowerNukkitOnly
+    @Since("1.5.0.0-PN")
+    public static final BlockProperties PROPERTIES = new BlockProperties(TALL_GRASS_TYPE);
 
     public BlockTallGrass() {
         this(1);
@@ -28,6 +46,14 @@ public class BlockTallGrass extends BlockFlowable {
     @Override
     public int getId() {
         return TALL_GRASS;
+    }
+
+    @Since("1.4.0.0-PN")
+    @PowerNukkitOnly
+    @Nonnull
+    @Override
+    public BlockProperties getProperties() {
+        return PROPERTIES;
     }
 
     @Override
@@ -62,19 +88,19 @@ public class BlockTallGrass extends BlockFlowable {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, double fx, double fy, double fz, Player player) {
-        Block down = this.down();
-        if (down.getId() == Block.GRASS || down.getId() == Block.DIRT || down.getId() == Block.PODZOL) {
+    public boolean place(@Nonnull Item item, @Nonnull Block block, @Nonnull Block target, @Nonnull BlockFace face, double fx, double fy, double fz, Player player) {
+        if (BlockSweetBerryBush.isSupportValid(down())) {
             this.getLevel().setBlock(block, this, true);
             return true;
         }
         return false;
     }
-
+    
+    @PowerNukkitDifference(since = "1.4.0.0-PN", info = "Will break on block update if the supporting block is invalid")
     @Override
     public int onUpdate(int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
-            if (this.down().isTransparent()) {
+            if (!BlockSweetBerryBush.isSupportValid(down(1, 0))) {
                 this.getLevel().useBreakOn(this);
                 return Level.BLOCK_UPDATE_NORMAL;
             }
@@ -83,34 +109,41 @@ public class BlockTallGrass extends BlockFlowable {
     }
 
     @Override
-    public boolean onActivate(Item item, Player player) {
-        if (item.getId() == Item.DYE && item.getDamage() == 0x0f) {
+    public boolean onActivate(@Nonnull Item item, Player player) {
+        if (item.isFertilizer()) {
             Block up = this.up();
 
             if (up.getId() == AIR) {
-                int meta;
+                DoublePlantType type;
 
                 switch (this.getDamage()) {
                     case 0:
                     case 1:
-                        meta = BlockDoublePlant.TALL_GRASS;
+                        type = DoublePlantType.GRASS;
                         break;
                     case 2:
                     case 3:
-                        meta = BlockDoublePlant.LARGE_FERN;
+                        type = DoublePlantType.FERN;
                         break;
                     default:
-                        meta = -1;
+                        type = null;
                 }
 
-                if (meta != -1) {
-                    if (player != null && (player.gamemode & 0x01) == 0) {
+                if (type != null) {
+                    if (player != null && !player.isCreative()) {
                         item.count--;
                     }
 
+                    BlockDoublePlant doublePlant = (BlockDoublePlant) Block.get(BlockID.DOUBLE_PLANT);
+                    doublePlant.setDoublePlantType(type);
+                    doublePlant.setTopHalf(false);
+
                     this.level.addParticle(new BoneMealParticle(this));
-                    this.level.setBlock(this, get(DOUBLE_PLANT, meta), true, false);
-                    this.level.setBlock(up, get(DOUBLE_PLANT, meta ^ BlockDoublePlant.TOP_HALF_BITMASK), true);
+                    this.level.setBlock(this, doublePlant, true, false);
+
+                    doublePlant.setTopHalf(true);
+                    this.level.setBlock(up, doublePlant, true);
+                    this.level.updateAround(this);
                 }
             }
 
@@ -122,28 +155,21 @@ public class BlockTallGrass extends BlockFlowable {
 
     @Override
     public Item[] getDrops(Item item) {
-        boolean dropSeeds = ThreadLocalRandom.current().nextInt(10) == 0;
+        // https://minecraft.gamepedia.com/Fortune#Grass_and_ferns
+        List<Item> drops = new ArrayList<>(2);
         if (item.isShears()) {
-            //todo enchantment
-            if (dropSeeds) {
-                return new Item[]{
-                        new ItemSeedsWheat(),
-                        Item.get(Item.TALL_GRASS, this.getDamage(), 1)
-                };
-            } else {
-                return new Item[]{
-                        Item.get(Item.TALL_GRASS, this.getDamage(), 1)
-                };
-            }
+            drops.add(getCurrentState().asItemBlock());
         }
 
-        if (dropSeeds) {
-            return new Item[]{
-                    new ItemSeedsWheat()
-            };
-        } else {
-            return new Item[0];
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        if (random.nextInt(8) == 0) {
+            Enchantment fortune = item.getEnchantment(Enchantment.ID_FORTUNE_DIGGING);
+            int fortuneLevel = fortune != null? fortune.getLevel() : 0;
+            int amount = fortuneLevel == 0? 1 : 1 + random.nextInt(fortuneLevel * 2);
+            drops.add(Item.get(ItemID.WHEAT_SEEDS, 0, amount));
         }
+        
+        return drops.toArray(Item.EMPTY_ARRAY);
     }
 
     @Override

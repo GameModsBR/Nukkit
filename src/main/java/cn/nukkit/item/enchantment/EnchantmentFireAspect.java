@@ -1,11 +1,11 @@
 package cn.nukkit.item.enchantment;
 
+import cn.nukkit.Server;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.event.entity.EntityCombustByEntityEvent;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * @author MagicDroidX (Nukkit Project)
  */
 public class EnchantmentFireAspect extends Enchantment {
     protected EnchantmentFireAspect() {
@@ -32,8 +32,10 @@ public class EnchantmentFireAspect extends Enchantment {
         int duration = Math.max(entity.fireTicks / 20, getLevel() * 4);
 
         EntityCombustByEntityEvent ev = new EntityCombustByEntityEvent(attacker, entity, duration);
+        Server.getInstance().getPluginManager().callEvent(ev);
 
-        if (!ev.isCancelled())
+        if (!ev.isCancelled()) {
             entity.setOnFire(ev.getDuration());
+        }
     }
 }

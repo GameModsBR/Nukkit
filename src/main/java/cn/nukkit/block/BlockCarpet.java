@@ -1,6 +1,10 @@
 package cn.nukkit.block;
 
 import cn.nukkit.Player;
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
+import cn.nukkit.blockproperty.BlockProperties;
+import cn.nukkit.blockproperty.CommonBlockProperties;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.Level;
 import cn.nukkit.math.AxisAlignedBB;
@@ -8,11 +12,17 @@ import cn.nukkit.math.BlockFace;
 import cn.nukkit.utils.BlockColor;
 import cn.nukkit.utils.DyeColor;
 
+import javax.annotation.Nonnull;
+
 /**
- * Created on 2015/11/24 by xtypr.
- * Package cn.nukkit.block in project Nukkit .
+ * @author xtypr
+ * @since 2015/11/24
  */
 public class BlockCarpet extends BlockFlowable {
+    @PowerNukkitOnly
+    @Since("1.5.0.0-PN")
+    public static final BlockProperties PROPERTIES = CommonBlockProperties.COLOR_BLOCK_PROPERTIES;
+
     public BlockCarpet() {
         this(0);
     }
@@ -30,6 +40,12 @@ public class BlockCarpet extends BlockFlowable {
         return CARPET;
     }
 
+    @Nonnull
+    @Override
+    public BlockProperties getProperties() {
+        return PROPERTIES;
+    }
+
     @Override
     public double getHardness() {
         return 0.1;
@@ -45,6 +61,13 @@ public class BlockCarpet extends BlockFlowable {
         return true;
     }
 
+    @Since("1.3.0.0-PN")
+    @PowerNukkitOnly
+    @Override
+    public boolean isSolid(BlockFace side) {
+        return false;
+    }
+
     @Override
     public String getName() {
         return DyeColor.getByWoolData(getDamage()) + " Carpet";
@@ -53,6 +76,12 @@ public class BlockCarpet extends BlockFlowable {
     @Override
     public boolean canPassThrough() {
         return false;
+    }
+
+    @PowerNukkitOnly
+    @Override
+    public int getWaterloggingLevel() {
+        return 1;
     }
 
     @Override
@@ -66,7 +95,7 @@ public class BlockCarpet extends BlockFlowable {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, double fx, double fy, double fz, Player player) {
+    public boolean place(@Nonnull Item item, @Nonnull Block block, @Nonnull Block target, @Nonnull BlockFace face, double fx, double fy, double fz, Player player) {
         Block down = this.down();
         if (down.getId() != Item.AIR) {
             this.getLevel().setBlock(block, this, true, true);
@@ -90,11 +119,17 @@ public class BlockCarpet extends BlockFlowable {
 
     @Override
     public BlockColor getColor() {
-        return DyeColor.getByWoolData(getDamage()).getColor();
+        return getDyeColor().getColor();
     }
 
     public DyeColor getDyeColor() {
-        return DyeColor.getByWoolData(getDamage());
+        return getPropertyValue(CommonBlockProperties.COLOR);
+    }
+
+    @PowerNukkitOnly
+    @Since("1.5.0.0-PN")
+    public void setDyeColor(@Nonnull DyeColor color) {
+        setPropertyValue(CommonBlockProperties.COLOR, color);
     }
 
 }

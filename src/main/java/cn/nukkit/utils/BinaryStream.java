@@ -1,12 +1,16 @@
 package cn.nukkit.utils;
 
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
 import cn.nukkit.block.Block;
 import cn.nukkit.entity.Attribute;
 import cn.nukkit.entity.data.Skin;
-import cn.nukkit.item.*;
+import cn.nukkit.item.Item;
+import cn.nukkit.item.ItemDurable;
+import cn.nukkit.item.ItemID;
+import cn.nukkit.item.RuntimeItems;
 import cn.nukkit.level.GameRule;
 import cn.nukkit.level.GameRules;
-import cn.nukkit.level.GlobalBlockPalette;
 import cn.nukkit.math.BlockFace;
 import cn.nukkit.math.BlockVector3;
 import cn.nukkit.math.Vector3f;
@@ -20,7 +24,10 @@ import cn.nukkit.network.protocol.types.EntityLink;
 import io.netty.buffer.AbstractByteBufAllocator;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.util.internal.EmptyArrays;
+import lombok.SneakyThrows;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.nio.ByteOrder;
@@ -29,8 +36,7 @@ import java.util.*;
 import java.util.function.Function;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * @author MagicDroidX (Nukkit Project)
  */
 public class BinaryStream {
 
@@ -95,7 +101,7 @@ public class BinaryStream {
     public byte[] get(int len) {
         if (len < 0) {
             this.offset = this.count - 1;
-            return new byte[0];
+            return EmptyArrays.EMPTY_BYTES;
         }
         len = Math.min(len, this.getCount() - this.offset);
         this.offset += len;
@@ -239,7 +245,7 @@ public class BinaryStream {
             }
         }
 
-        return list.toArray(new Attribute[0]);
+        return list.toArray(Attribute.EMPTY_ARRAY);
     }
 
     /**
@@ -374,21 +380,21 @@ public class BinaryStream {
     }
 
     public Item getSlot() {
-        int id = getVarInt();
-        if (id == 0) {
+        int networkId = getVarInt();
+        if (networkId == 0) {
             return Item.get(0, 0, 0);
         }
 
         int count = getLShort();
         int damage = (int) getUnsignedVarInt();
 
-        int fullId = RuntimeItems.getRuntimeMapping().getLegacyFullId(id);
-        id = RuntimeItems.getId(fullId);
+        int fullId = RuntimeItems.getRuntimeMapping().getLegacyFullId(networkId);
+        int id = RuntimeItems.getId(fullId);
 
-        /*boolean hasData = RuntimeItems.hasData(fullId); // Unnecessary when the damage is read from NBT
+        boolean hasData = RuntimeItems.hasData(fullId);
         if (hasData) {
             damage = RuntimeItems.getData(fullId);
-        }*/
+        }
 
         if (getBoolean()) { // hasNetId
             getVarInt(); // netId
@@ -482,6 +488,7 @@ public class BinaryStream {
         this.putSlot(item, false);
     }
 
+    @Since("1.4.0.0-PN")
     public void putSlot(Item item, boolean instanceItem) {
         if (item == null || item.getId() == 0) {
             putByte((byte) 0);
@@ -494,26 +501,31 @@ public class BinaryStream {
         putVarInt(networkId);
         putLShort(item.getCount());
 
-        boolean useLegacyData = false;
+        int legacyData = 0;
         if (item.getId() > 256) { // Not a block
             if (item instanceof ItemDurable || !RuntimeItems.hasData(networkFullId)) {
-                useLegacyData = true;
+                legacyData = item.getDamage();
             }
         }
-        putUnsignedVarInt(useLegacyData ? item.getDamage() : 0);
+        putUnsignedVarInt(legacyData);
 
         if (!instanceItem) {
-            putBoolean(true);
-            putVarInt(0); //TODO
+            putBoolean(true); // hasNetId
+            putVarInt(0); // netId
         }
 
         Block block = item.getBlockUnsafe();
-        int runtimeId = block == null ? 0 : GlobalBlockPalette.getOrCreateRuntimeId(block.getId(), block.getDamage());
-        putVarInt(runtimeId);
+        int blockRuntimeId = block == null ? 0 : block.getRuntimeId();
+        putVarInt(blockRuntimeId);
+
+        int data = 0;
+        if (item instanceof ItemDurable || item.getId() < 256) {
+            data = item.getDamage();
+        }
 
         ByteBuf userDataBuf = ByteBufAllocator.DEFAULT.ioBuffer();
         try (LittleEndianByteBufOutputStream stream = new LittleEndianByteBufOutputStream(userDataBuf)) {
-            if (item.getDamage() != 0) {
+            if (data != 0) {
                 byte[] nbt = item.getCompoundTag();
                 CompoundTag tag;
                 if (nbt == null || nbt.length == 0) {
@@ -524,7 +536,7 @@ public class BinaryStream {
                 if (tag.contains("Damage")) {
                     tag.put("__DamageConflict__", tag.removeAndGet("Damage"));
                 }
-                tag.putInt("Damage", item.getDamage());
+                tag.putInt("Damage", data);
                 stream.writeShort(-1);
                 stream.writeByte(1); // Hardcoded in current version
                 stream.write(NBTIO.write(tag, ByteOrder.LITTLE_ENDIAN));
@@ -716,7 +728,7 @@ public class BinaryStream {
         Map<GameRule, GameRules.Value> rules = gameRules.getGameRules();
         this.putUnsignedVarInt(rules.size());
         rules.forEach((gameRule, value) -> {
-            putString(gameRule.getName().toLowerCase());
+            this.putString(gameRule.getName().toLowerCase());
             value.write(this);
         });
     }
@@ -789,6 +801,26 @@ public class BinaryStream {
 
     public boolean feof() {
         return this.offset < 0 || this.offset >= this.buffer.length;
+    }
+
+    @SneakyThrows(IOException.class)
+    @PowerNukkitOnly
+    @Since("1.5.0.0-PN")
+    public CompoundTag getTag() {
+        ByteArrayInputStream is = new ByteArrayInputStream(buffer, offset, buffer.length);
+        int initial = is.available();
+        try {
+            return NBTIO.read(is);
+        } finally {
+            offset += is.available() - initial;
+        }
+    }
+
+    @SneakyThrows(IOException.class)
+    @PowerNukkitOnly
+    @Since("1.5.0.0-PN")
+    public void putTag(CompoundTag tag) {
+        put(NBTIO.write(tag));
     }
 
     private void ensureCapacity(int minCapacity) {

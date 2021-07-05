@@ -1,15 +1,16 @@
 package cn.nukkit.item;
 
 import cn.nukkit.Player;
+import cn.nukkit.api.DeprecationDetails;
+import cn.nukkit.api.PowerNukkitDifference;
+import cn.nukkit.api.Since;
 import cn.nukkit.level.Sound;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.tag.ByteTag;
 import cn.nukkit.nbt.tag.Tag;
-import cn.nukkit.network.protocol.LevelSoundEventPacket;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * @author MagicDroidX (Nukkit Project)
  */
 abstract public class ItemArmor extends Item implements ItemDurable {
 
@@ -18,8 +19,15 @@ abstract public class ItemArmor extends Item implements ItemDurable {
     public static final int TIER_CHAIN = 3;
     public static final int TIER_GOLD = 4;
     public static final int TIER_DIAMOND = 5;
-    public static final int TIER_NETHERITE = 6;
-    public static final int TIER_OTHER = 7;
+    @Since("1.4.0.0-PN") public static final int TIER_NETHERITE = 6;
+    
+    @Deprecated
+    @DeprecationDetails(since = "1.4.0.0-PN", 
+            reason = "The value of this 'constant' is unstable, it may change if new tiers gets added. Refrain from using it. " +
+                    "Changes in this value will not be considered as an API breaking change and will not affect code that " +
+                    "is already compiled."
+    )
+    public static final int TIER_OTHER = 1000;
 
     public ItemArmor(int id) {
         super(id);
@@ -47,6 +55,7 @@ abstract public class ItemArmor extends Item implements ItemDurable {
         return true;
     }
 
+    @PowerNukkitDifference(info = "Using new method to play sounds", since = "1.4.0.0-PN")
     @Override
     public boolean onClickAir(Player player, Vector3 directionVector) {
         boolean equip = false;
@@ -76,25 +85,26 @@ abstract public class ItemArmor extends Item implements ItemDurable {
             player.getInventory().setItem(player.getInventory().getHeldItemIndex(), oldSlotItem);
             switch (this.getTier()) {
                 case TIER_CHAIN:
-                    player.getLevel().addLevelSoundEvent(player, LevelSoundEventPacket.SOUND_ARMOR_EQUIP_CHAIN);
+                    player.getLevel().addSound(player, Sound.ARMOR_EQUIP_CHAIN);
                     break;
                 case TIER_DIAMOND:
-                    player.getLevel().addLevelSoundEvent(player, LevelSoundEventPacket.SOUND_ARMOR_EQUIP_DIAMOND);
+                    player.getLevel().addSound(player, Sound.ARMOR_EQUIP_DIAMOND);
                     break;
                 case TIER_GOLD:
-                    player.getLevel().addLevelSoundEvent(player, LevelSoundEventPacket.SOUND_ARMOR_EQUIP_GOLD);
+                    player.getLevel().addSound(player, Sound.ARMOR_EQUIP_GOLD);
                     break;
                 case TIER_IRON:
-                    player.getLevel().addLevelSoundEvent(player, LevelSoundEventPacket.SOUND_ARMOR_EQUIP_IRON);
+                    player.getLevel().addSound(player, Sound.ARMOR_EQUIP_IRON);
                     break;
                 case TIER_LEATHER:
-                    player.getLevel().addLevelSoundEvent(player, LevelSoundEventPacket.SOUND_ARMOR_EQUIP_LEATHER);
+                    player.getLevel().addSound(player, Sound.ARMOR_EQUIP_LEATHER);
                     break;
                 case TIER_NETHERITE:
                     player.getLevel().addSound(player, Sound.ARMOR_EQUIP_NETHERITE);
+                    break;
                 case TIER_OTHER:
                 default:
-                    player.getLevel().addLevelSoundEvent(player, LevelSoundEventPacket.SOUND_ARMOR_EQUIP_GENERIC);
+                    player.getLevel().addSound(player, Sound.ARMOR_EQUIP_GENERIC);
             }
         }
 
@@ -107,6 +117,7 @@ abstract public class ItemArmor extends Item implements ItemDurable {
             case TIER_CHAIN:
                 return 12;
             case TIER_LEATHER:
+            case TIER_NETHERITE:
                 return 15;
             case TIER_DIAMOND:
                 return 10;

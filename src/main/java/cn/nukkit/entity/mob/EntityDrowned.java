@@ -1,12 +1,13 @@
 package cn.nukkit.entity.mob;
 
+import cn.nukkit.Player;
 import cn.nukkit.entity.EntitySmite;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.nbt.tag.CompoundTag;
 
 /**
- * Created by PetteriM1
+ * @author PetteriM1
  */
 public class EntityDrowned extends EntityMob implements EntitySmite {
 
@@ -34,7 +35,7 @@ public class EntityDrowned extends EntityMob implements EntitySmite {
 
     @Override
     public float getHeight() {
-        return 1.95f;
+        return 1.9f;
     }
 
     @Override
@@ -45,5 +46,15 @@ public class EntityDrowned extends EntityMob implements EntitySmite {
     @Override
     public Item[] getDrops() {
         return new Item[]{Item.get(Item.ROTTEN_FLESH)};
+    }
+
+    @Override
+    public boolean isUndead() {
+        return true;
+    }
+
+    @Override
+    public boolean isPreventingSleep(Player player) {
+        return true;
     }
 }

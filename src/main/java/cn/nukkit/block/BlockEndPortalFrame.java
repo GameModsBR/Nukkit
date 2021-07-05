@@ -1,21 +1,39 @@
 package cn.nukkit.block;
 
 import cn.nukkit.Player;
+import cn.nukkit.api.PowerNukkitDifference;
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
+import cn.nukkit.blockproperty.BlockProperties;
+import cn.nukkit.blockproperty.BooleanBlockProperty;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemBlock;
+import cn.nukkit.level.Sound;
 import cn.nukkit.math.BlockFace;
 import cn.nukkit.math.Vector3;
-import cn.nukkit.network.protocol.LevelSoundEventPacket;
 import cn.nukkit.utils.BlockColor;
 import cn.nukkit.utils.Faceable;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static cn.nukkit.blockproperty.CommonBlockProperties.DIRECTION;
+
 /**
- * Created by Pub4Game on 26.12.2015.
+ * @author Pub4Game
+ * @since 26.12.2015
  */
 public class BlockEndPortalFrame extends BlockTransparentMeta implements Faceable {
+
+    @PowerNukkitOnly
+    @Since("1.5.0.0-PN")
+    public static final BooleanBlockProperty END_PORTAL_EYE = new BooleanBlockProperty("end_portal_eye_bit", false);
+
+    @PowerNukkitOnly
+    @Since("1.5.0.0-PN")
+    public static final BlockProperties PROPERTIES = new BlockProperties(DIRECTION, END_PORTAL_EYE);
 
     private static final int[] FACES = {2, 3, 0, 1};
 
@@ -32,6 +50,14 @@ public class BlockEndPortalFrame extends BlockTransparentMeta implements Faceabl
         return END_PORTAL_FRAME;
     }
 
+    @Since("1.4.0.0-PN")
+    @PowerNukkitOnly
+    @Nonnull
+    @Override
+    public BlockProperties getProperties() {
+        return PROPERTIES;
+    }
+
     @Override
     public double getResistance() {
         return 18000000;
@@ -44,6 +70,12 @@ public class BlockEndPortalFrame extends BlockTransparentMeta implements Faceabl
 
     @Override
     public int getLightLevel() {
+        return 1;
+    }
+
+    @PowerNukkitOnly
+    @Override
+    public int getWaterloggingLevel() {
         return 1;
     }
 
@@ -67,6 +99,11 @@ public class BlockEndPortalFrame extends BlockTransparentMeta implements Faceabl
         return false;
     }
 
+    @Override
+    public boolean canBePulled() {
+        return false;
+    }
+
     public boolean hasComparatorInputOverride() {
         return true;
     }
@@ -80,18 +117,20 @@ public class BlockEndPortalFrame extends BlockTransparentMeta implements Faceabl
         return true;
     }
 
+    @PowerNukkitDifference(info = "Using new method to play sounds", since = "1.4.0.0-PN")
     @Override
-    public boolean onActivate(Item item, Player player) {
-        if((this.getDamage() & 0x04) == 0 && player != null && item.getId() == Item.ENDER_EYE) {
+    public boolean onActivate(@Nonnull Item item, Player player) {
+        if ((this.getDamage() & 0x04) == 0 && player != null && item.getId() == Item.ENDER_EYE) {
             this.setDamage(this.getDamage() + 4);
             this.getLevel().setBlock(this, this, true, true);
-            this.getLevel().addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_BLOCK_END_PORTAL_FRAME_FILL);
-            this.createPortal();
+            this.getLevel().addSound(this, Sound.BLOCK_END_PORTAL_FRAME_FILL);
+            //this.createPortal(); TODO Re-enable this after testing
             return true;
         }
         return false;
     }
 
+    @Since("1.3.0.0-PN")
     public void createPortal() {
         Vector3 centerSpot = this.searchCenter(new ArrayList<>());
         if(centerSpot != null) {
@@ -185,7 +224,7 @@ public class BlockEndPortalFrame extends BlockTransparentMeta implements Faceabl
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, double fx, double fy, double fz, Player player) {
+    public boolean place(@Nonnull Item item, @Nonnull Block block, @Nonnull Block target, @Nonnull BlockFace face, double fx, double fy, double fz, @Nullable Player player) {
         this.setDamage(FACES[player != null ? player.getDirection().getHorizontalIndex() : 0]);
         this.getLevel().setBlock(block, this, true);
         return true;

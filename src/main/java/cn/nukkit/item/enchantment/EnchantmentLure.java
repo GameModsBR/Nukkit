@@ -1,8 +1,7 @@
 package cn.nukkit.item.enchantment;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * @author MagicDroidX (Nukkit Project)
  */
 public class EnchantmentLure extends Enchantment {
     protected EnchantmentLure() {
@@ -12,6 +11,11 @@ public class EnchantmentLure extends Enchantment {
     @Override
     public int getMinEnchantAbility(int level) {
         return level + 8 * level + 6;
+    }
+
+    @Override
+    public int getMaxEnchantAbility(int level) {
+        return getMinEnchantAbility(level) + 45 + level;
     }
 
     @Override

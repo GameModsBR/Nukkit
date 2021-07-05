@@ -1,8 +1,7 @@
 package cn.nukkit.item.enchantment;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * @author MagicDroidX (Nukkit Project)
  */
 public class EnchantmentWaterWalker extends Enchantment {
     protected EnchantmentWaterWalker() {
@@ -16,7 +15,7 @@ public class EnchantmentWaterWalker extends Enchantment {
 
     @Override
     public int getMaxEnchantAbility(int level) {
-        return this.getMinEnchantAbility(level) + 10;
+        return this.getMinEnchantAbility(level) + 15;
     }
 
     @Override

@@ -1,14 +1,17 @@
 package cn.nukkit.blockentity;
 
 import cn.nukkit.Player;
-import cn.nukkit.block.*;
+import cn.nukkit.block.Block;
+import cn.nukkit.block.BlockID;
 import cn.nukkit.event.inventory.FurnaceBurnEvent;
 import cn.nukkit.event.inventory.FurnaceSmeltEvent;
 import cn.nukkit.inventory.FurnaceInventory;
-import cn.nukkit.inventory.FurnaceRecipe;
 import cn.nukkit.inventory.InventoryHolder;
+import cn.nukkit.inventory.InventoryType;
+import cn.nukkit.inventory.SmeltingRecipe;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemBlock;
+import cn.nukkit.item.ItemBucket;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
@@ -33,9 +36,13 @@ public class BlockEntityFurnace extends BlockEntitySpawnable implements Inventor
         super(chunk, nbt);
     }
 
+    protected InventoryType getInventoryType() {
+        return InventoryType.FURNACE;
+    }
+
     @Override
     protected void initBlockEntity() {
-        this.inventory = new FurnaceInventory(this);
+        this.inventory = new FurnaceInventory(this, getInventoryType());
 
         if (!this.namedTag.contains("Items") || !(this.namedTag.get("Items") instanceof ListTag)) {
             this.namedTag.putList(new ListTag<CompoundTag>("Items"));
@@ -82,9 +89,17 @@ public class BlockEntityFurnace extends BlockEntitySpawnable implements Inventor
         super.initBlockEntity();
     }
 
+    protected String getFurnaceName() {
+        return "Furnace";
+    }
+
+    protected String getClientName() {
+        return FURNACE;
+    }
+
     @Override
     public String getName() {
-        return this.hasName() ? this.namedTag.getString("CustomName") : "Furnace";
+        return this.hasName() ? this.namedTag.getString("CustomName") : getFurnaceName();
     }
 
     @Override
@@ -136,7 +151,7 @@ public class BlockEntityFurnace extends BlockEntitySpawnable implements Inventor
     @Override
     public boolean isBlockEntityValid() {
         int blockID = getBlock().getId();
-        return blockID == Block.FURNACE || blockID == Block.BURNING_FURNACE;
+        return blockID == getIdleBlockId() || blockID == getBurningBlockId();
     }
 
     @Override
@@ -188,6 +203,24 @@ public class BlockEntityFurnace extends BlockEntitySpawnable implements Inventor
         return inventory;
     }
 
+    protected int getIdleBlockId() {
+        return Block.FURNACE;
+    }
+
+    protected int getBurningBlockId() {
+        return Block.LIT_FURNACE;
+    }
+
+    protected void setBurning(boolean burning) {
+        if (burning) {
+            if (this.getBlock().getId() == getIdleBlockId()) {
+                this.getLevel().setBlock(this, Block.get(getBurningBlockId(), this.getBlock().getDamage()), true);
+            }
+        } else if (this.getBlock().getId() == getBurningBlockId()) {
+            this.getLevel().setBlock(this, Block.get(getIdleBlockId(), this.getBlock().getDamage()), true);
+        }
+    }
+
     protected void checkFuel(Item fuel) {
         FurnaceBurnEvent ev = new FurnaceBurnEvent(this, fuel, fuel.getFuelTime() == null ? 0 : fuel.getFuelTime());
         this.server.getPluginManager().callEvent(ev);
@@ -195,17 +228,15 @@ public class BlockEntityFurnace extends BlockEntitySpawnable implements Inventor
             return;
         }
 
-        maxTime = ev.getBurnTime();
-        burnTime = ev.getBurnTime();
+        maxTime = (int) Math.ceil(ev.getBurnTime() / (float) getSpeedMultiplier());
+        burnTime = (int) Math.ceil(ev.getBurnTime() / (float) getSpeedMultiplier());
         burnDuration = 0;
-        if (this.getBlock().getId() == Item.FURNACE) {
-            this.getLevel().setBlock(this, Block.get(BlockID.BURNING_FURNACE, this.getBlock().getDamage()), true);
-        }
+        setBurning(true);
 
         if (burnTime > 0 && ev.isBurning()) {
             fuel.setCount(fuel.getCount() - 1);
             if (fuel.getCount() == 0) {
-                if (fuel.getId() == Item.BUCKET && fuel.getDamage() == 10) {
+                if (fuel.getId() == Item.BUCKET && ((ItemBucket)fuel).isLava()) {
                     fuel.setDamage(0);
                     fuel.setCount(1);
                 } else {
@@ -214,6 +245,14 @@ public class BlockEntityFurnace extends BlockEntitySpawnable implements Inventor
             }
             this.inventory.setFuel(fuel);
         }
+    }
+
+    protected SmeltingRecipe matchRecipe(Item raw) {
+        return this.server.getCraftingManager().matchFurnaceRecipe(raw);
+    }
+
+    protected int getSpeedMultiplier() {
+        return 1;
     }
 
     @Override
@@ -228,7 +267,7 @@ public class BlockEntityFurnace extends BlockEntitySpawnable implements Inventor
         Item fuel = this.inventory.getFuel();
         Item raw = this.inventory.getSmelting();
         Item product = this.inventory.getResult();
-        FurnaceRecipe smelt = this.server.getCraftingManager().matchFurnaceRecipe(raw);
+        SmeltingRecipe smelt = matchRecipe(raw);
         boolean canSmelt = (smelt != null && raw.getCount() > 0 && ((smelt.getResult().equals(product, true) && product.getCount() < product.getMaxStackSize()) || product.getId() == Item.AIR));
 
         if (burnTime <= 0 && canSmelt && fuel.getFuelTime() != null && fuel.getCount() > 0) {
@@ -237,11 +276,12 @@ public class BlockEntityFurnace extends BlockEntitySpawnable implements Inventor
 
         if (burnTime > 0) {
             burnTime--;
-            burnDuration = (int) Math.ceil((float) burnTime / maxTime * 200);
+            int readyAt = 200 / getSpeedMultiplier();
+            burnDuration = (int) Math.ceil((float) burnTime / maxTime * readyAt);
 
             if (smelt != null && canSmelt) {
                 cookTime++;
-                if (cookTime >= 200) {
+                if (cookTime >= readyAt) {
                     product = Item.get(smelt.getResult().getId(), smelt.getResult().getDamage(), product.getCount() + 1);
 
                     FurnaceSmeltEvent ev = new FurnaceSmeltEvent(this, raw, product);
@@ -255,7 +295,7 @@ public class BlockEntityFurnace extends BlockEntitySpawnable implements Inventor
                         this.inventory.setSmelting(raw);
                     }
 
-                    cookTime -= 200;
+                    cookTime -= readyAt;
                 }
             } else if (burnTime <= 0) {
                 burnTime = 0;
@@ -266,9 +306,7 @@ public class BlockEntityFurnace extends BlockEntitySpawnable implements Inventor
             }
             ret = true;
         } else {
-            if (this.getBlock().getId() == Item.BURNING_FURNACE) {
-                this.getLevel().setBlock(this, Block.get(BlockID.FURNACE, this.getBlock().getDamage()), true);
-            }
+            setBurning(false);
             burnTime = 0;
             cookTime = 0;
             burnDuration = 0;
@@ -280,19 +318,16 @@ public class BlockEntityFurnace extends BlockEntitySpawnable implements Inventor
                 ContainerSetDataPacket pk = new ContainerSetDataPacket();
                 pk.windowId = windowId;
                 pk.property = ContainerSetDataPacket.PROPERTY_FURNACE_TICK_COUNT;
-
                 pk.value = cookTime;
-                player.dataPacket(pk);
+                player.batchDataPacket(pk);
 
                 pk = new ContainerSetDataPacket();
                 pk.windowId = windowId;
                 pk.property = ContainerSetDataPacket.PROPERTY_FURNACE_LIT_TIME;
                 pk.value = burnDuration;
-                player.dataPacket(pk);
+                player.batchDataPacket(pk);
             }
         }
-
-        this.lastUpdate = System.currentTimeMillis();
 
         this.timing.stopTiming();
 
@@ -302,7 +337,7 @@ public class BlockEntityFurnace extends BlockEntitySpawnable implements Inventor
     @Override
     public CompoundTag getSpawnCompound() {
         CompoundTag c = new CompoundTag()
-                .putString("id", BlockEntity.FURNACE)
+                .putString("id", getClientName())
                 .putInt("x", (int) this.x)
                 .putInt("y", (int) this.y)
                 .putInt("z", (int) this.z)

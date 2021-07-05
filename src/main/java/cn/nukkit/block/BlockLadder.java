@@ -1,6 +1,11 @@
 package cn.nukkit.block;
 
 import cn.nukkit.Player;
+import cn.nukkit.api.PowerNukkitDifference;
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
+import cn.nukkit.blockproperty.BlockProperties;
+import cn.nukkit.blockproperty.CommonBlockProperties;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemTool;
 import cn.nukkit.level.Level;
@@ -9,11 +14,17 @@ import cn.nukkit.math.BlockFace;
 import cn.nukkit.utils.BlockColor;
 import cn.nukkit.utils.Faceable;
 
+import javax.annotation.Nonnull;
+
 /**
- * Created on 2015/12/8 by xtypr.
- * Package cn.nukkit.block in project Nukkit .
+ * @author xtypr
+ * @since 2015/12/8
  */
 public class BlockLadder extends BlockTransparentMeta implements Faceable {
+
+    @PowerNukkitOnly
+    @Since("1.5.0.0-PN")
+    public static final BlockProperties PROPERTIES = CommonBlockProperties.FACING_DIRECTION_BLOCK_PROPERTIES;
 
     public BlockLadder() {
         this(0);
@@ -34,6 +45,14 @@ public class BlockLadder extends BlockTransparentMeta implements Faceable {
         return LADDER;
     }
 
+    @Since("1.4.0.0-PN")
+    @PowerNukkitOnly
+    @Nonnull
+    @Override
+    public BlockProperties getProperties() {
+        return PROPERTIES;
+    }
+
     @Override
     public boolean hasEntityCollision() {
         return true;
@@ -47,6 +66,19 @@ public class BlockLadder extends BlockTransparentMeta implements Faceable {
     @Override
     public boolean isSolid() {
         return false;
+    }
+
+    @Since("1.3.0.0-PN")
+    @PowerNukkitOnly
+    @Override
+    public boolean isSolid(BlockFace side) {
+        return false;
+    }
+
+    @PowerNukkitOnly
+    @Override
+    public int getWaterloggingLevel() {
+        return 1;
     }
 
     @Override
@@ -132,18 +164,32 @@ public class BlockLadder extends BlockTransparentMeta implements Faceable {
         return super.recalculateBoundingBox();
     }
 
+    @PowerNukkitDifference(since = "1.4.0.0-PN", info = "Fixed support logic")
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, double fx, double fy, double fz, Player player) {
-        if (!target.isTransparent()) {
-            if (face.getIndex() >= 2 && face.getIndex() <= 5) {
-                this.setDamage(face.getIndex());
-                this.getLevel().setBlock(block, this, true, true);
-                return true;
-            }
+    public boolean place(@Nonnull Item item, @Nonnull Block block, @Nonnull Block target, @Nonnull BlockFace face, double fx, double fy, double fz, Player player) {
+        if (face.getHorizontalIndex() == -1 || !isSupportValid(target, face)) {
+            return false;
         }
-        return false;
+        
+        this.setDamage(face.getIndex());
+        this.getLevel().setBlock(block, this, true, true);
+        return true;
+    }
+    
+    private boolean isSupportValid(Block support, BlockFace face) {
+        switch (support.getId()) {
+            case GLASS:
+            case GLASS_PANE:
+            case STAINED_GLASS:
+            case STAINED_GLASS_PANE:
+            case BEACON:
+                return false;
+            default:
+                return BlockLever.isSupportValid(support, face);
+        }
     }
 
+    @PowerNukkitDifference(since = "1.4.0.0-PN", info = "Fixed support logic")
     @Override
     public int onUpdate(int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
@@ -155,7 +201,8 @@ public class BlockLadder extends BlockTransparentMeta implements Faceable {
                     5,
                     4
             };
-            if (!this.getSide(BlockFace.fromIndex(faces[this.getDamage()])).isSolid()) {
+            BlockFace face = BlockFace.fromIndex(faces[this.getDamage()]);
+            if (!isSupportValid(this.getSide(face), face.getOpposite())) {
                 this.getLevel().useBreakOn(this);
                 return Level.BLOCK_UPDATE_NORMAL;
             }
@@ -176,12 +223,22 @@ public class BlockLadder extends BlockTransparentMeta implements Faceable {
     @Override
     public Item[] getDrops(Item item) {
         return new Item[]{
-            Item.get(Item.LADDER, 0, 1)
+                Item.get(Item.LADDER, 0, 1)
         };
     }
 
     @Override
     public BlockFace getBlockFace() {
         return BlockFace.fromHorizontalIndex(this.getDamage() & 0x07);
+    }
+
+    @Override
+    public boolean breaksWhenMoved() {
+        return true;
+    }
+
+    @Override
+    public boolean sticksToPiston() {
+        return false;
     }
 }

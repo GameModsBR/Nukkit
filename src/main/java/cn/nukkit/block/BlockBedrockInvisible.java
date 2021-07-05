@@ -1,11 +1,13 @@
 package cn.nukkit.block;
 
+import cn.nukkit.api.PowerNukkitOnly;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemBlock;
 import cn.nukkit.utils.BlockColor;
 
 /**
- * Created by Pub4Game on 03.01.2016.
+ * @author Pub4Game
+ * @since 03.01.2016
  */
 public class BlockBedrockInvisible extends BlockSolid {
 
@@ -20,6 +22,17 @@ public class BlockBedrockInvisible extends BlockSolid {
     @Override
     public String getName() {
         return "Invisible Bedrock";
+    }
+
+    @PowerNukkitOnly
+    @Override
+    public int getWaterloggingLevel() {
+        return 2;
+    }
+
+    @Override
+    public boolean canBeFlowedInto() {
+        return false;
     }
 
     @Override
@@ -44,6 +57,11 @@ public class BlockBedrockInvisible extends BlockSolid {
 
     @Override
     public boolean canBePushed() {
+        return false;
+    }
+
+    @Override
+    public boolean canBePulled() {
         return false;
     }
 

@@ -3,8 +3,7 @@ package cn.nukkit.item.enchantment;
 import cn.nukkit.item.Item;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * @author MagicDroidX (Nukkit Project)
  */
 public class EnchantmentSilkTouch extends Enchantment {
     protected EnchantmentSilkTouch() {
@@ -29,5 +28,14 @@ public class EnchantmentSilkTouch extends Enchantment {
     @Override
     public boolean canEnchant(Item item) {
         return item.isShears() || super.canEnchant(item);
+    }
+    
+    
+    @Override
+    public boolean isItemAcceptable(Item item) {
+        if (item.isShears()) {
+            return true;
+        }
+        return super.isItemAcceptable(item);
     }
 }

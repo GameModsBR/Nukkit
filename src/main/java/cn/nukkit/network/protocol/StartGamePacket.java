@@ -1,12 +1,13 @@
 package cn.nukkit.network.protocol;
 
+import cn.nukkit.api.Since;
 import cn.nukkit.item.RuntimeItems;
 import cn.nukkit.level.GameRules;
 import lombok.ToString;
 import lombok.extern.log4j.Log4j2;
 
 /**
- * Created on 15-10-13.
+ * @since 15-10-13
  */
 @Log4j2
 @ToString
@@ -57,7 +58,7 @@ public class StartGamePacket extends DataPacket {
     public GameRules gameRules;
     public boolean bonusChest = false;
     public boolean hasStartWithMapEnabled = false;
-    public boolean trustingPlayers;
+    @Since("1.3.0.0-PN") public boolean trustingPlayers;
     public int permissionLevel = 1;
     public int serverChunkTickRange = 4;
     public boolean hasLockedBehaviorPack = false;
@@ -73,7 +74,7 @@ public class StartGamePacket extends DataPacket {
     public String premiumWorldTemplateId = "";
     public boolean isTrial = false;
     public boolean isMovementServerAuthoritative;
-    public boolean isInventoryServerAuthoritative;
+    @Since("1.3.0.0-PN") public boolean isInventoryServerAuthoritative;
     public long currentTick;
 
     public int enchantmentSeed;
@@ -150,5 +151,6 @@ public class StartGamePacket extends DataPacket {
         this.put(RuntimeItems.getRuntimeMapping().getItemDataPalette());
         this.putString(this.multiplayerCorrelationId);
         this.putBoolean(this.isInventoryServerAuthoritative);
+        this.putString(""); // Server Engine
     }
 }

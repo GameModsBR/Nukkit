@@ -1,10 +1,14 @@
 package cn.nukkit.network.protocol;
 
+import cn.nukkit.api.DeprecationDetails;
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
 import cn.nukkit.utils.BinaryStream;
+import io.netty.util.internal.EmptyArrays;
 import lombok.ToString;
 
 /**
- * Created on 15-10-13.
+ * @since 15-10-13
  */
 @ToString
 public class TextPacket extends DataPacket {
@@ -25,13 +29,13 @@ public class TextPacket extends DataPacket {
     public static final byte TYPE_SYSTEM = 6;
     public static final byte TYPE_WHISPER = 7;
     public static final byte TYPE_ANNOUNCEMENT = 8;
-    public static final byte TYPE_OBJECT = 9;
-    public static final byte TYPE_OBJECT_WHISPER = 10;
+    @Since("1.3.0.0-PN") public static final byte TYPE_OBJECT = 9;
+    @Since("1.3.0.0-PN") public static final byte TYPE_OBJECT_WHISPER = 10;
 
     public byte type;
     public String source = "";
     public String message = "";
-    public String[] parameters = new String[0];
+    public String[] parameters = EmptyArrays.EMPTY_STRINGS;
     public boolean isLocalized = false;
     public String xboxUserId = "";
     public String platformChatId = "";

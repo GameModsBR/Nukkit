@@ -1,5 +1,7 @@
 package cn.nukkit.network.protocol;
 
+import cn.nukkit.api.Since;
+import cn.nukkit.api.PowerNukkitOnly;
 import cn.nukkit.inventory.*;
 import cn.nukkit.item.Item;
 import lombok.ToString;
@@ -7,6 +9,7 @@ import lombok.ToString;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * @author Nukkit Project Team
@@ -33,14 +36,40 @@ public class CraftingDataPacket extends DataPacket {
         Collections.addAll(entries, recipe);
     }
 
+    @PowerNukkitOnly
+    public void addStonecutterRecipe(StonecutterRecipe... recipes) {
+        Collections.addAll(entries, recipes);
+    }
+
     public void addShapedRecipe(ShapedRecipe... recipe) {
         Collections.addAll(entries, recipe);
+    }
+
+    @PowerNukkitOnly
+    public void addCartographyRecipe(CartographyRecipe... recipe) {
+        Stream.of(recipe).filter(r -> r.getRecipeId() != null).forEachOrdered(r -> entries.add(r));
     }
 
     public void addFurnaceRecipe(FurnaceRecipe... recipe) {
         Collections.addAll(entries, recipe);
     }
 
+    @PowerNukkitOnly
+    public void addSmokerRecipe(SmokerRecipe... recipe) {
+        Collections.addAll(entries, recipe);
+    }
+
+    @PowerNukkitOnly
+    public void addBlastFurnaceRecipe(BlastFurnaceRecipe... recipe) {
+        Collections.addAll(entries, recipe);
+    }
+
+    @PowerNukkitOnly
+    public void addCampfireRecipeRecipe(CampfireRecipe... recipe) {
+        Collections.addAll(entries, recipe);
+    }
+
+    @Since("1.4.0.0-PN")
     public void addMultiRecipe(MultiRecipe... recipe) {
         Collections.addAll(entries, recipe);
     }
@@ -72,9 +101,22 @@ public class CraftingDataPacket extends DataPacket {
         int recipeNetworkId = 1;
 
         for (Recipe recipe : entries) {
-            this.putVarInt(recipe.getType().ordinal());
+            this.putVarInt(recipe.getType().networkType);
             switch (recipe.getType()) {
+                case STONECUTTER:
+                    StonecutterRecipe stonecutter = (StonecutterRecipe) recipe;
+                    this.putString(stonecutter.getRecipeId());
+                    this.putUnsignedVarInt(1);
+                    this.putRecipeIngredient(stonecutter.getIngredient());
+                    this.putUnsignedVarInt(1);
+                    this.putSlot(stonecutter.getResult(), true);
+                    this.putUUID(stonecutter.getId());
+                    this.putString(CRAFTING_TAG_STONECUTTER);
+                    this.putVarInt(stonecutter.getPriority());
+                    this.putUnsignedVarInt(recipeNetworkId++);
+                    break;
                 case SHAPELESS:
+                case CARTOGRAPHY:
                     ShapelessRecipe shapeless = (ShapelessRecipe) recipe;
                     this.putString(shapeless.getRecipeId());
                     List<Item> ingredients = shapeless.getIngredientList();
@@ -85,7 +127,7 @@ public class CraftingDataPacket extends DataPacket {
                     this.putUnsignedVarInt(1);
                     this.putSlot(shapeless.getResult(), true);
                     this.putUUID(shapeless.getId());
-                    this.putString(CRAFTING_TAG_CRAFTING_TABLE);
+                    this.putString(recipe.getType() == RecipeType.CARTOGRAPHY ? CRAFTING_TAG_CARTOGRAPHY_TABLE : CRAFTING_TAG_CRAFTING_TABLE);
                     this.putVarInt(shapeless.getPriority());
                     this.putUnsignedVarInt(recipeNetworkId++);
                     break;
@@ -114,14 +156,37 @@ public class CraftingDataPacket extends DataPacket {
                     break;
                 case FURNACE:
                 case FURNACE_DATA:
-                    FurnaceRecipe furnace = (FurnaceRecipe) recipe;
-                    Item input = furnace.getInput();
+                case SMOKER:
+                case SMOKER_DATA:
+                case BLAST_FURNACE:
+                case BLAST_FURNACE_DATA:
+                case CAMPFIRE:
+                case CAMPFIRE_DATA:
+                    SmeltingRecipe smelting = (SmeltingRecipe) recipe;
+                    Item input = smelting.getInput();
                     this.putVarInt(input.getId());
-                    if (recipe.getType() == RecipeType.FURNACE_DATA) {
+                    if (recipe.getType().name().endsWith("_DATA")) {
                         this.putVarInt(input.getDamage());
                     }
-                    this.putSlot(furnace.getResult(), true);
-                    this.putString(CRAFTING_TAG_FURNACE);
+                    this.putSlot(smelting.getResult(), true);
+                    switch (recipe.getType()) {
+                        case FURNACE:
+                        case FURNACE_DATA:
+                            this.putString(CRAFTING_TAG_FURNACE);
+                            break;
+                        case SMOKER:
+                        case SMOKER_DATA:
+                            this.putString(CRAFTING_TAG_SMOKER);
+                            break;
+                        case BLAST_FURNACE:
+                        case BLAST_FURNACE_DATA:
+                            this.putString(CRAFTING_TAG_BLAST_FURNACE);
+                            break;
+                        case CAMPFIRE:
+                        case CAMPFIRE_DATA:
+                            this.putString(CRAFTING_TAG_CAMPFIRE);
+                            break;
+                    }
                     break;
                 case MULTI:
                     this.putUUID(((MultiRecipe) recipe).getId());

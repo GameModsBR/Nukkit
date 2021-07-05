@@ -2,14 +2,17 @@ package cn.nukkit.entity.item;
 
 import cn.nukkit.Player;
 import cn.nukkit.Server;
+import cn.nukkit.api.PowerNukkitDifference;
 import cn.nukkit.block.Block;
 import cn.nukkit.entity.Entity;
+import cn.nukkit.entity.data.LongEntityData;
 import cn.nukkit.entity.projectile.EntityProjectile;
 import cn.nukkit.event.entity.EntityDamageByChildEntityEvent;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.entity.EntityDamageEvent.DamageCause;
 import cn.nukkit.event.entity.ProjectileHitEvent;
+import cn.nukkit.event.player.PlayerFishEvent;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.randomitem.Fishing;
 import cn.nukkit.level.MovingObjectPosition;
@@ -17,16 +20,18 @@ import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.level.particle.BubbleParticle;
 import cn.nukkit.level.particle.WaterParticle;
 import cn.nukkit.math.Vector3;
+import cn.nukkit.math.Vector3f;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.network.protocol.AddEntityPacket;
 import cn.nukkit.network.protocol.EntityEventPacket;
 
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 
 /**
- * Created by PetteriM1
+ * @author PetteriM1
  */
 public class EntityFishingHook extends EntityProjectile {
 
@@ -55,6 +60,15 @@ public class EntityFishingHook extends EntityProjectile {
     }
 
     @Override
+    protected void initEntity() {
+        super.initEntity();
+        // https://github.com/PowerNukkit/PowerNukkit/issues/267
+        if (age > 0) {
+            close();
+        }
+    }
+
+    @Override
     public int getNetworkId() {
         return NETWORK_ID;
     }
@@ -76,17 +90,30 @@ public class EntityFishingHook extends EntityProjectile {
 
     @Override
     public float getGravity() {
-        return 0.07f;
-    }
-
-    @Override
-    public float getDrag() {
         return 0.05f;
     }
 
     @Override
+    public float getDrag() {
+        return 0.04f;
+    }
+
+    @Override
     public boolean onUpdate(int currentTick) {
-        boolean hasUpdate = super.onUpdate(currentTick);
+        boolean hasUpdate = false;
+        long target = getDataPropertyLong(DATA_TARGET_EID);
+        if (target != 0L) {
+            Entity entity = getLevel().getEntity(target);
+            if (entity == null || !entity.isAlive()) {
+                setDataProperty(new LongEntityData(DATA_TARGET_EID, 0L));
+            } else {
+                Vector3f offset = entity.getMountedOffset(this);
+                setPosition(new Vector3(entity.x + offset.x, entity.y + offset.y, entity.z + offset.z));
+            }
+            hasUpdate = true;
+        }
+
+        hasUpdate |= super.onUpdate(currentTick);
         if (hasUpdate) {
             return false;
         }
@@ -204,43 +231,37 @@ public class EntityFishingHook extends EntityProjectile {
         return false;
     }
 
+    @PowerNukkitDifference(since = "1.4.0.0-PN", info = "May create custom EntityItem")
     public void reelLine() {
         if (this.shootingEntity instanceof Player && this.caught) {
-            Item item = Fishing.getFishingResult(this.rod);
-            int experience = new Random().nextInt((3 - 1) + 1) + 1;
-            Vector3 motion;
-
-            if (this.shootingEntity != null) {
-                motion = this.shootingEntity.subtract(this).multiply(0.1);
-                motion.y += Math.sqrt(this.shootingEntity.distance(this)) * 0.08;
-            } else {
-                motion = new Vector3();
-            }
-
-            EntityItem itemEntity = new EntityItem(
-                    this.level.getChunk((int) this.x >> 4, (int) this.z >> 4, true),
-                    Entity.getDefaultNBT(new Vector3(this.x, this.getWaterHeight(), this.z), motion, new Random().nextFloat() * 360, 0).putShort("Health", 5).putCompound("Item", NBTIO.putItemHelper(item)).putShort("PickupDelay", 1));
-
-            if (this.shootingEntity != null && this.shootingEntity instanceof Player) {
-                itemEntity.setOwner(this.shootingEntity.getName());
-            }
-            itemEntity.spawnToAll();
-
             Player player = (Player) this.shootingEntity;
-            if (experience > 0) {
-                player.addExperience(experience);
+            Item item = Fishing.getFishingResult(this.rod);
+            int experience = ThreadLocalRandom.current().nextInt(3) + 1;
+            Vector3 motion = player.subtract(this).multiply(0.1);
+            motion.y += Math.sqrt(player.distance(this)) * 0.08;
+
+            PlayerFishEvent event = new PlayerFishEvent(player, this, item, experience, motion);
+            this.getServer().getPluginManager().callEvent(event);
+
+            if (!event.isCancelled()) {
+                EntityItem itemEntity = (EntityItem) Entity.createEntity(EntityItem.NETWORK_ID,
+                        this.level.getChunk((int) this.x >> 4, (int) this.z >> 4, true),
+                    Entity.getDefaultNBT(
+                            new Vector3(this.x, this.getWaterHeight(), this.z), 
+                            event.getMotion(), ThreadLocalRandom.current().nextFloat() * 360, 
+                            0
+                    ).putCompound("Item", NBTIO.putItemHelper(event.getLoot()))
+                            .putShort("Health", 5)
+                            .putShort("PickupDelay", 1));
+
+                if (itemEntity != null) {
+                    itemEntity.setOwner(player.getName());
+                    itemEntity.spawnToAll();
+                    player.addExperience(event.getExperience());
+                }
             }
         }
-        if (this.shootingEntity instanceof Player) {
-            EntityEventPacket pk = new EntityEventPacket();
-            pk.eid = this.getId();
-            pk.event = EntityEventPacket.FISH_HOOK_TEASE;
-            Server.broadcastPacket(this.getViewers().values(), pk);
-        }
-        if (!this.closed) {
-            this.kill();
-            this.close();
-        }
+        this.close();
     }
 
     @Override
@@ -268,6 +289,11 @@ public class EntityFishingHook extends EntityProjectile {
     }
 
     @Override
+    public boolean canCollide() {
+        return getDataPropertyLong(DATA_TARGET_EID) == 0L;
+    }
+
+    @Override
     public void onCollideWithEntity(Entity entity) {
         this.server.getPluginManager().callEvent(new ProjectileHitEvent(this, MovingObjectPosition.fromEntity(entity)));
         float damage = this.getResultDamage();
@@ -279,6 +305,8 @@ public class EntityFishingHook extends EntityProjectile {
             ev = new EntityDamageByChildEntityEvent(this.shootingEntity, this, entity, DamageCause.PROJECTILE, damage);
         }
 
-        entity.attack(ev);
+        if (entity.attack(ev)) {
+            setDataProperty(new LongEntityData(DATA_TARGET_EID, entity.getId()));
+        }
     }
 }

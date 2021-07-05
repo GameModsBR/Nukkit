@@ -1,7 +1,7 @@
 package cn.nukkit.entity.item;
 
-import cn.nukkit.Player;
 import cn.nukkit.Server;
+import cn.nukkit.api.PowerNukkitDifference;
 import cn.nukkit.block.BlockID;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.event.entity.EntityDamageEvent;
@@ -106,16 +106,23 @@ public class EntityItem extends Entity {
         this.item = NBTIO.getItemHelper(this.namedTag.getCompound("Item"));
         this.setDataFlag(DATA_FLAGS, DATA_FLAG_GRAVITY, true);
 
-        int id = this.item.getId();
-        if (id >= Item.NETHERITE_INGOT && id <= Item.NETHERITE_SCRAP) {
+        if (this.item.isLavaResistant()) {
             this.fireProof = true; // Netherite items are fireproof
         }
 
         this.server.getPluginManager().callEvent(new ItemSpawnEvent(this));
     }
 
+    @PowerNukkitDifference(since = "1.4.0.0-PN", info = "Netherite stuff is immune to fire and lava damage")
     @Override
     public boolean attack(EntityDamageEvent source) {
+        if (item != null && item.isLavaResistant() && (
+                source.getCause() == DamageCause.LAVA ||
+                        source.getCause() == DamageCause.FIRE ||
+                        source.getCause() == DamageCause.FIRE_TICK)) {
+            return false;
+        }
+
         return (source.getCause() == DamageCause.VOID ||
                 source.getCause() == DamageCause.CONTACT ||
                 source.getCause() == DamageCause.FIRE_TICK ||
@@ -140,7 +147,7 @@ public class EntityItem extends Entity {
         this.lastUpdate = currentTick;
 
         this.timing.startTiming();
-        
+
         if (this.age % 60 == 0 && this.onGround && this.getItem() != null && this.isAlive()) {
             if (this.getItem().getCount() < this.getItem().getMaxStackSize()) {
                 for (Entity entity : this.getLevel().getNearbyEntities(getBoundingBox().grow(1, 1, 1), this, false)) {
@@ -173,7 +180,9 @@ public class EntityItem extends Entity {
 
         boolean hasUpdate = this.entityBaseTick(tickDiff);
 
-        if (!this.fireProof && this.isInsideOfFire()) {
+        boolean lavaResistant = fireProof || item != null && item.isLavaResistant();
+
+        if (!lavaResistant && (isInsideOfFire() || isInsideOfLava())) {
             this.kill();
         }
 
@@ -193,11 +202,25 @@ public class EntityItem extends Entity {
                 }
             }*/
 
-            int bid = level.getBlockIdAt(this.getFloorX(), this.getFloorY(), this.getFloorZ());
-            if (bid == BlockID.WATER || bid == BlockID.STILL_WATER) {
-                this.motionY = this.getGravity() - 0.06;
-            } else if (!this.isOnGround()) {
-                this.motionY -= this.getGravity();
+            int bid = this.level.getBlockIdAt((int) this.x, (int) this.boundingBox.getMaxY(), (int) this.z, 0);
+            if (bid == BlockID.WATER || bid == BlockID.STILL_WATER
+                || (bid = this.level.getBlockIdAt((int) this.x, (int) this.boundingBox.getMaxY(), (int) this.z, 1)) == BlockID.WATER
+                || bid == BlockID.STILL_WATER
+            ) {
+                //item is fully in water or in still water
+                this.motionY -= this.getGravity() * -0.015;
+            } else if (lavaResistant && (
+                    this.level.getBlockIdAt((int) this.x, (int) this.boundingBox.getMaxY(), (int) this.z, 0) == BlockID.LAVA
+                            || this.level.getBlockIdAt((int) this.x, (int) this.boundingBox.getMaxY(), (int) this.z, 0) == BlockID.STILL_LAVA
+                            || this.level.getBlockIdAt((int) this.x, (int) this.boundingBox.getMaxY(), (int) this.z, 1) == BlockID.LAVA
+                            || this.level.getBlockIdAt((int) this.x, (int) this.boundingBox.getMaxY(), (int) this.z, 1) == BlockID.STILL_LAVA
+            )) {
+                //item is fully in lava or in still lava
+                this.motionY -= this.getGravity() * -0.015;
+            } else if (this.isInsideOfWater() || lavaResistant && this.isInsideOfLava()) {
+                this.motionY = this.getGravity() - 0.06; //item is going up in water, don't let it go back down too fast
+            } else {
+                this.motionY -= this.getGravity(); //item is not in water
             }
 
             if (this.checkObstruction(this.x, this.y, this.z)) {
@@ -237,6 +260,14 @@ public class EntityItem extends Entity {
         this.timing.stopTiming();
 
         return hasUpdate || !this.onGround || Math.abs(this.motionX) > 0.00001 || Math.abs(this.motionY) > 0.00001 || Math.abs(this.motionZ) > 0.00001;
+    }
+
+    @Override
+    public void setOnFire(int seconds) {
+        if (item != null && item.isLavaResistant()) {
+            return;
+        }
+        super.setOnFire(seconds);
     }
 
     @Override

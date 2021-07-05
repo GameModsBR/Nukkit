@@ -1,5 +1,6 @@
 package cn.nukkit.network.protocol;
 
+import cn.nukkit.api.Since;
 import cn.nukkit.inventory.transaction.data.ReleaseItemData;
 import cn.nukkit.inventory.transaction.data.TransactionData;
 import cn.nukkit.inventory.transaction.data.UseItemData;
@@ -39,15 +40,16 @@ public class InventoryTransactionPacket extends DataPacket {
     public int transactionType;
     public NetworkInventoryAction[] actions;
     public TransactionData transactionData;
-    public int legacyRequestId;
+
+    @Since("1.3.0.0-PN") public int legacyRequestId;
 
     /**
      * NOTE: THESE FIELDS DO NOT EXIST IN THE PROTOCOL, it's merely used for convenience for us to easily
      * determine whether we're doing a crafting or enchanting transaction.
      */
     public boolean isCraftingPart = false;
-    public boolean isEnchantingPart = false;
-    public boolean isRepairItemPart = false;
+    @Since("1.3.1.0-PN") public boolean isEnchantingPart = false;
+    @Since("1.4.0.0-PN") public boolean isRepairItemPart = false;
 
     @Override
     public byte pid() {
@@ -124,7 +126,7 @@ public class InventoryTransactionPacket extends DataPacket {
         for (int i = 0; i < length; i++) {
             actions.add(new NetworkInventoryAction().read(this));
         }
-        this.actions = actions.toArray(new NetworkInventoryAction[0]);
+        this.actions = actions.toArray(NetworkInventoryAction.EMPTY_ARRAY);
 
         switch (this.transactionType) {
             case TYPE_NORMAL:

@@ -1,37 +1,58 @@
 package cn.nukkit.block;
 
+import cn.nukkit.api.PowerNukkitDifference;
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
+import cn.nukkit.blockproperty.BlockProperties;
+import cn.nukkit.blockproperty.IntBlockProperty;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.event.block.BlockFromToEvent;
 import cn.nukkit.event.block.LiquidFlowEvent;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemBlock;
 import cn.nukkit.level.Level;
+import cn.nukkit.level.Sound;
 import cn.nukkit.level.particle.SmokeParticle;
 import cn.nukkit.math.AxisAlignedBB;
+import cn.nukkit.math.BlockFace;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.network.protocol.LevelEventPacket;
-import cn.nukkit.network.protocol.LevelSoundEventPacket;
 import it.unimi.dsi.fastutil.longs.Long2ByteMap;
 import it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap;
 
+import javax.annotation.Nonnull;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * @author MagicDroidX (Nukkit Project)
  */
 public abstract class BlockLiquid extends BlockTransparentMeta {
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public static final IntBlockProperty LIQUID_DEPTH = new IntBlockProperty("liquid_depth", false, 15);
 
-    private final byte CAN_FLOW_DOWN = 1;
-    private final byte CAN_FLOW = 0;
-    private final byte BLOCKED = -1;
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public static final BlockProperties PROPERTIES = new BlockProperties(LIQUID_DEPTH);
+
+    private static final byte CAN_FLOW_DOWN = 1;
+    private static final byte CAN_FLOW = 0;
+    private static final byte BLOCKED = -1;
     public int adjacentSources = 0;
     protected Vector3 flowVector = null;
-    private Long2ByteMap flowCostVisited = new Long2ByteOpenHashMap();
+    private final Long2ByteMap flowCostVisited = new Long2ByteOpenHashMap();
 
     protected BlockLiquid(int meta) {
         super(meta);
+    }
+
+    @Since("1.4.0.0-PN")
+    @PowerNukkitOnly
+    @Nonnull
+    @Override
+    public BlockProperties getProperties() {
+        return PROPERTIES;
     }
 
     @Override
@@ -39,12 +60,14 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
         return true;
     }
 
+    @Override
     protected AxisAlignedBB recalculateBoundingBox() {
         return null;
     }
 
+    @Override
     public Item[] getDrops(Item item) {
-        return new Item[0];
+        return Item.EMPTY_ARRAY;
     }
 
     @Override
@@ -64,6 +87,13 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
 
     @Override
     public boolean isSolid() {
+        return false;
+    }
+
+    @Since("1.3.0.0-PN")
+    @PowerNukkitOnly
+    @Override
+    public boolean isSolid(BlockFace side) {
         return false;
     }
 
@@ -87,8 +117,12 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
         return this;
     }
 
+    public boolean usesWaterLogging() {
+        return false;
+    }
+
     public float getFluidHeightPercent() {
-        float d = (float) this.getDamage();
+        float d = getLiquidDepth();
         if (d >= 8) {
             d = 0;
         }
@@ -98,16 +132,24 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
 
     protected int getFlowDecay(Block block) {
         if (block.getId() != this.getId()) {
-            return -1;
+            Block layer1 = block.getLevelBlockAtLayer(1);
+            if (layer1.getId() != this.getId()) {
+                return -1;
+            } else {
+                return ((BlockLiquid)layer1).getLiquidDepth();
+            }
         }
-        return block.getDamage();
+        return ((BlockLiquid)block).getLiquidDepth();
     }
 
     protected int getEffectiveFlowDecay(Block block) {
         if (block.getId() != this.getId()) {
-            return -1;
+            block = block.getLevelBlockAtLayer(1);
+            if (block.getId() != this.getId()) {
+                return -1;
+            }
         }
-        int decay = block.getDamage();
+        int decay = ((BlockLiquid)block).getLiquidDepth();
         if (decay >= 8) {
             decay = 0;
         }
@@ -162,7 +204,7 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
                 vector.z += (sideBlock.z - this.z) * realDecay;
             }
         }
-        if (this.getDamage() >= 8) {
+        if (getLiquidDepth() >= 8) {
             if (!this.canFlowInto(this.level.getBlock((int) this.x, (int) this.y, (int) this.z - 1)) ||
                     !this.canFlowInto(this.level.getBlock((int) this.x, (int) this.y, (int) this.z + 1)) ||
                     !this.canFlowInto(this.level.getBlock((int) this.x - 1, (int) this.y, (int) this.z)) ||
@@ -195,6 +237,15 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
     public int onUpdate(int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
             this.checkForHarden();
+            if (usesWaterLogging() && layer > 0) {
+                Block layer0 = this.level.getBlock(this, 0);
+                if (layer0.getId() == 0) {
+                    this.level.setBlock(this, 1, Block.get(BlockID.AIR), false, false);
+                    this.level.setBlock(this, 0, this, false, false);
+                } else if (layer0.getWaterloggingLevel() <= 0 || layer0.getWaterloggingLevel() == 1 && getLiquidDepth() > 0) {
+                    this.level.setBlock(this, 1, Block.get(BlockID.AIR), true, true);
+                }
+            }
             this.level.scheduleUpdate(this, this.tickRate());
             return 0;
         } else if (type == Level.BLOCK_UPDATE_SCHEDULED) {
@@ -219,8 +270,13 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
                     Block bottomBlock = this.level.getBlock((int) this.x, (int) this.y - 1, (int) this.z);
                     if (bottomBlock.isSolid()) {
                         newDecay = 0;
-                    } else if (bottomBlock instanceof BlockWater && bottomBlock.getDamage() == 0) {
+                    } else if (bottomBlock instanceof BlockWater && ((BlockWater)bottomBlock).getLiquidDepth() == 0) {
                         newDecay = 0;
+                    } else {
+                        bottomBlock = bottomBlock.getLevelBlockAtLayer(1);
+                        if (bottomBlock instanceof BlockWater && ((BlockWater)bottomBlock).getLiquidDepth() == 0) {
+                            newDecay = 0;
+                        }
                     }
                 }
                 if (newDecay != decay) {
@@ -235,7 +291,7 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
                     BlockFromToEvent event = new BlockFromToEvent(this, to);
                     level.getServer().getPluginManager().callEvent(event);
                     if (!event.isCancelled()) {
-                        this.level.setBlock(this, event.getTo(), true, true);
+                        this.level.setBlock(this, layer, event.getTo(), true, true);
                         if (!decayed) {
                             this.level.scheduleUpdate(this, this.tickRate());
                         }
@@ -245,7 +301,7 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
             if (decay >= 0) {
                 Block bottomBlock = this.level.getBlock((int) this.x, (int) this.y - 1, (int) this.z);
                 this.flowIntoBlock(bottomBlock, decay | 0x08);
-                if (decay == 0 || !bottomBlock.canBeFlowedInto()) {
+                if (decay == 0 || !(usesWaterLogging()? bottomBlock.canWaterloggingFlowInto(): bottomBlock.canBeFlowedInto())) {
                     int adjacentDecay;
                     if (decay >= 8) {
                         adjacentDecay = 1;
@@ -276,13 +332,24 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
 
     protected void flowIntoBlock(Block block, int newFlowDecay) {
         if (this.canFlowInto(block) && !(block instanceof BlockLiquid)) {
+            if (usesWaterLogging()) {
+                Block layer1 = block.getLevelBlockAtLayer(1);
+                if (layer1 instanceof BlockLiquid) {
+                    return;
+                }
+
+                if (block.getWaterloggingLevel() > 1) {
+                    block = layer1;
+                }
+            }
+
             LiquidFlowEvent event = new LiquidFlowEvent(block, this, newFlowDecay);
             level.getServer().getPluginManager().callEvent(event);
             if (!event.isCancelled()) {
-                if (block.getId() > 0) {
+                if (block.layer == 0 && block.getId() > 0) {
                     this.level.useBreakOn(block, block.getId() == COBWEB ? Item.get(Item.WOODEN_SWORD) : null);
                 }
-                this.level.setBlock(block, getBlock(newFlowDecay), true, true);
+                this.level.setBlock(block, block.layer, getBlock(newFlowDecay), true, true);
                 this.level.scheduleUpdate(block, this.tickRate());
             }
         }
@@ -311,7 +378,9 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
                 Block blockSide = this.level.getBlock(x, y, z);
                 if (!this.canFlowInto(blockSide)) {
                     this.flowCostVisited.put(hash, BLOCKED);
-                } else if (this.level.getBlock(x, y - 1, z).canBeFlowedInto()) {
+                } else if (usesWaterLogging()?
+                        this.level.getBlock(x, y - 1, z).canWaterloggingFlowInto() :
+                        this.level.getBlock(x, y - 1, z).canBeFlowedInto()) {
                     this.flowCostVisited.put(hash, CAN_FLOW_DOWN);
                 } else {
                     this.flowCostVisited.put(hash, CAN_FLOW);
@@ -368,7 +437,9 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
             Block block = this.level.getBlock(x, y, z);
             if (!this.canFlowInto(block)) {
                 this.flowCostVisited.put(Level.blockHash(x, y, z), BLOCKED);
-            } else if (this.level.getBlock(x, y - 1, z).canBeFlowedInto()) {
+            } else if (usesWaterLogging()?
+                    this.level.getBlock(x, y - 1, z).canWaterloggingFlowInto():
+                    this.level.getBlock(x, y - 1, z).canBeFlowedInto()) {
                 this.flowCostVisited.put(Level.blockHash(x, y, z), CAN_FLOW_DOWN);
                 flowCost[j] = maxCost = 0;
             } else if (maxCost > 0) {
@@ -428,6 +499,7 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
         entity.resetFallDistance();
     }
 
+    @PowerNukkitDifference(info = "Using new method to play sounds", since = "1.4.0.0-PN")
     protected boolean liquidCollide(Block cause, Block result) {
         BlockFromToEvent event = new BlockFromToEvent(this, result);
         this.level.getServer().getPluginManager().callEvent(event);
@@ -435,16 +507,81 @@ public abstract class BlockLiquid extends BlockTransparentMeta {
             return false;
         }
         this.level.setBlock(this, event.getTo(), true, true);
-        this.getLevel().addLevelSoundEvent(this.add(0.5, 0.5, 0.5), LevelSoundEventPacket.SOUND_FIZZ);
+        this.level.setBlock(this, 1, Block.get(BlockID.AIR), true, true);
+        this.getLevel().addSound(this.add(0.5, 0.5, 0.5), Sound.RANDOM_FIZZ);
         return true;
     }
 
     protected boolean canFlowInto(Block block) {
-        return block.canBeFlowedInto() && !(block instanceof BlockLiquid && block.getDamage() == 0);
+        if (usesWaterLogging()) {
+            if (block.canWaterloggingFlowInto()) {
+                Block blockLayer1 = block.getLevelBlockAtLayer(1);
+                return !(block instanceof BlockLiquid && ((BlockLiquid)block).getLiquidDepth() == 0) && !(blockLayer1 instanceof BlockLiquid && ((BlockLiquid)blockLayer1).getLiquidDepth() == 0);
+            }
+        }
+        return block.canBeFlowedInto() && !(block instanceof BlockLiquid && ((BlockLiquid)block).getLiquidDepth() == 0);
     }
 
     @Override
     public Item toItem() {
         return new ItemBlock(Block.get(BlockID.AIR));
+    }
+
+    @Override
+    public boolean breaksWhenMoved() {
+        return true;
+    }
+
+    @Override
+    public boolean sticksToPiston() {
+        return false;
+    }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public int getLiquidDepth() {
+        return getPropertyValue(LIQUID_DEPTH);
+    }
+
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public void setLiquidDepth(int liquidDepth) {
+        setPropertyValue(LIQUID_DEPTH, liquidDepth);
+    }
+
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public boolean isSource() {
+        return getLiquidDepth() == 0;
+    }
+
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public int getDepthOnTop() {
+        int liquidDepth = getLiquidDepth();
+        if (liquidDepth > 8) {
+            liquidDepth -= 8;
+        }
+        return liquidDepth;
+    }
+
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public boolean isFlowingDown() {
+        return getLiquidDepth() >= 8;
+    }
+
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public boolean isSourceOrFlowingDown() {
+        int liquidDepth = getLiquidDepth();
+        return liquidDepth == 0 || liquidDepth == 8;
+    }
+
+    @Since("1.4.0.0-PN")
+    @PowerNukkitOnly
+    @Override
+    public int getLightFilter() {
+        return 2;
     }
 }

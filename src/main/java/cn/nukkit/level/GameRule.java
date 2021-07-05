@@ -1,5 +1,8 @@
 package cn.nukkit.level;
 
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
+
 import java.util.Optional;
 
 public enum GameRule {
@@ -23,15 +26,31 @@ public enum GameRule {
     SEND_COMMAND_FEEDBACK("sendCommandFeedback"),
     SHOW_COORDINATES("showCoordinates"),
     TNT_EXPLODES("tntExplodes"),
-    SHOW_DEATH_MESSAGE("showDeathMessage");
+    SHOW_DEATH_MESSAGE("showDeathMessages"),
+    EXPERIMENTAL_GAMEPLAY("experimentalGameplay"),
+    MAX_COMMAND_CHAIN_LENGTH("maxCommandChainLength"),
+    DO_INSOMNIA("doInsomnia"),
+    COMMAND_BLOCKS_ENABLED("commandBlocksEnabled"),
+    FUNCTION_COMMAND_LIMIT("functionCommandLimit"),
+    SPAWN_RADIUS("spawnRadius"),
+    SHOW_TAGS("showTags");
 
     private final String name;
+
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public static final GameRule[] EMPTY_ARRAY = new GameRule[0];
 
     GameRule(String name) {
         this.name = name;
     }
 
     public static Optional<GameRule> parseString(String gameRuleString) {
+        //Backward compatibility
+        if ("showDeathMessage".equalsIgnoreCase(gameRuleString)) {
+            gameRuleString = "showDeathMessages";
+        }
+
         for (GameRule gameRule: values()) {
             if (gameRule.getName().equalsIgnoreCase(gameRuleString)) {
                 return Optional.of(gameRule);

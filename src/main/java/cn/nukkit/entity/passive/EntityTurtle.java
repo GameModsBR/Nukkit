@@ -1,10 +1,11 @@
 package cn.nukkit.entity.passive;
 
 import cn.nukkit.level.format.FullChunk;
+import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.tag.CompoundTag;
 
 /**
- * Created by PetteriM1
+ * @author PetteriM1
  */
 public class EntityTurtle extends EntityAnimal {
 
@@ -25,11 +26,17 @@ public class EntityTurtle extends EntityAnimal {
 
     @Override
     public float getWidth() {
+        if (this.isBaby()) {
+            return 0.6f;
+        }
         return 1.2f;
     }
 
     @Override
     public float getHeight() {
+        if (this.isBaby()) {
+            return 0.2f;
+        }
         return 0.4f;
     }
 
@@ -37,5 +44,13 @@ public class EntityTurtle extends EntityAnimal {
     public void initEntity() {
         super.initEntity();
         this.setMaxHealth(30);
+    }
+
+    public void setBreedingAge(int ticks) {
+
+    }
+
+    public void setHomePos(Vector3 pos) {
+
     }
 }

@@ -10,10 +10,7 @@ import cn.nukkit.level.generator.populator.type.PopulatorSurfaceBlock;
 import cn.nukkit.math.NukkitRandom;
 
 /**
- * @author Niall Lindsay (Niall7459)
- * <p>
- * Nukkit Project
- * </p>
+ * @author Niall Lindsay (Niall7459, Nukkit Project)
  */
 public class PopulatorSugarcane extends PopulatorSurfaceBlock {
 
@@ -40,6 +37,6 @@ public class PopulatorSugarcane extends PopulatorSurfaceBlock {
 
     @Override
     protected int getBlockId(int x, int z, NukkitRandom random, FullChunk chunk) {
-        return (SUGARCANE_BLOCK << 4) | 1;
+        return (SUGARCANE_BLOCK << Block.DATA_BITS) | 1;
     }
 }
