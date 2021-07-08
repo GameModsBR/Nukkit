@@ -1,13 +1,15 @@
 package cn.nukkit.network.protocol;
 
+import cn.nukkit.api.Since;
 import lombok.ToString;
 
+@Since("1.3.0.0-PN")
 @ToString
 public class CodeBuilderPacket extends DataPacket {
     public static final byte NETWORK_ID = ProtocolInfo.CODE_BUILDER_PACKET;
 
-    public boolean isOpening;
-    public String url = "";
+    @Since("1.3.0.0-PN") public boolean isOpening;
+    @Since("1.3.0.0-PN") public String url = "";
 
     @Override
     public byte pid() {

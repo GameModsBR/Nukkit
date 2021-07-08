@@ -1,17 +1,22 @@
 package cn.nukkit.block;
 
+import cn.nukkit.Player;
 import cn.nukkit.Server;
 import cn.nukkit.event.block.BlockSpreadEvent;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemBlock;
 import cn.nukkit.item.ItemTool;
 import cn.nukkit.level.Level;
+import cn.nukkit.level.Sound;
 import cn.nukkit.math.NukkitRandom;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.utils.BlockColor;
 
+import javax.annotation.Nonnull;
+
 /**
- * Created by Pub4Game on 03.01.2016.
+ * @author Pub4Game
+ * @since 03.01.2016
  */
 public class BlockMycelium extends BlockSolid {
 
@@ -53,18 +58,20 @@ public class BlockMycelium extends BlockSolid {
     @Override
     public int onUpdate(int type) {
         if (type == Level.BLOCK_UPDATE_RANDOM) {
-            //TODO: light levels
-            NukkitRandom random = new NukkitRandom();
-            x = random.nextRange((int) x - 1, (int) x + 1);
-            y = random.nextRange((int) y - 1, (int) y + 1);
-            z = random.nextRange((int) z - 1, (int) z + 1);
-            Block block = this.getLevel().getBlock(new Vector3(x, y, z));
-            if (block.getId() == Block.DIRT && block.getDamage() == 0) {
-                if (block.up().isTransparent()) {
-                    BlockSpreadEvent ev = new BlockSpreadEvent(block, this, Block.get(BlockID.MYCELIUM));
-                    Server.getInstance().getPluginManager().callEvent(ev);
-                    if (!ev.isCancelled()) {
-                        this.getLevel().setBlock(block, ev.getNewState());
+            if (getLevel().getFullLight(add(0, 1, 0)) >= BlockCrops.MINIMUM_LIGHT_LEVEL) {
+                //TODO: light levels
+                NukkitRandom random = new NukkitRandom();
+                x = random.nextRange((int) x - 1, (int) x + 1);
+                y = random.nextRange((int) y - 1, (int) y + 1);
+                z = random.nextRange((int) z - 1, (int) z + 1);
+                Block block = this.getLevel().getBlock(new Vector3(x, y, z));
+                if (block.getId() == Block.DIRT && block.getDamage() == 0) {
+                    if (block.up().isTransparent()) {
+                        BlockSpreadEvent ev = new BlockSpreadEvent(block, this, Block.get(BlockID.MYCELIUM));
+                        Server.getInstance().getPluginManager().callEvent(ev);
+                        if (!ev.isCancelled()) {
+                            this.getLevel().setBlock(block, ev.getNewState());
+                        }
                     }
                 }
             }
@@ -80,5 +87,27 @@ public class BlockMycelium extends BlockSolid {
     @Override
     public boolean canSilkTouch() {
         return true;
+    }
+    
+    @Override
+    public boolean canBeActivated() {
+        return true;
+    }
+    
+    @Override
+    public boolean onActivate(@Nonnull Item item, Player player) {
+        if (!this.up().canBeReplaced()) {
+            return false;
+        }
+        
+        if (item.isShovel()) {
+            item.useOn(this);
+            this.getLevel().setBlock(this, Block.get(BlockID.GRASS_PATH));
+            if (player != null) {
+                player.getLevel().addSound(player, Sound.USE_GRASS);
+            }
+            return true;
+        }
+        return false;
     }
 }

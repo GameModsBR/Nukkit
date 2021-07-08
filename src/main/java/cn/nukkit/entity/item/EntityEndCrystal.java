@@ -1,5 +1,7 @@
 package cn.nukkit.entity.item;
 
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityExplosive;
 import cn.nukkit.event.entity.EntityDamageEvent;
@@ -10,12 +12,15 @@ import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.nbt.tag.CompoundTag;
 
 /**
- * Created by PetteriM1
+ * @author PetteriM1
  */
 public class EntityEndCrystal extends Entity implements EntityExplosive {
 
     public static final int NETWORK_ID = 71;
 
+    /**
+     * @since 1.2.1.0-PN
+     */
     protected boolean detonated = false;
 
     @Override
@@ -58,6 +63,10 @@ public class EntityEndCrystal extends Entity implements EntityExplosive {
 
     @Override
     public boolean attack(EntityDamageEvent source) {
+        if (isClosed()) {
+            return false;
+        }
+        
         if (source.getCause() == EntityDamageEvent.DamageCause.FIRE || source.getCause() == EntityDamageEvent.DamageCause.FIRE_TICK || source.getCause() == EntityDamageEvent.DamageCause.LAVA) {
             return false;
         }
@@ -99,5 +108,13 @@ public class EntityEndCrystal extends Entity implements EntityExplosive {
 
     public void setShowBase(boolean value) {
         this.setDataFlag(DATA_FLAGS, DATA_FLAG_SHOWBASE, value);
+    }
+
+
+    @PowerNukkitOnly
+    @Since("1.5.1.0-PN")
+    @Override
+    public String getOriginalName() {
+        return "Ender Crystal";
     }
 }

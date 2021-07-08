@@ -1,13 +1,13 @@
 package cn.nukkit;
 
+import cn.nukkit.api.PowerNukkitDifference;
 import cn.nukkit.network.protocol.AdventureSettingsPacket;
 
 import java.util.EnumMap;
 import java.util.Map;
 
 /**
- * Nukkit Project
- * Author: MagicDroidX
+ * @author MagicDroidX (Nukkit Project)
  */
 public class AdventureSettings implements Cloneable {
 
@@ -46,6 +46,9 @@ public class AdventureSettings implements Cloneable {
         return value == null ? type.getDefaultValue() : value;
     }
 
+    @PowerNukkitDifference(
+            info = "Players in spectator mode will be flagged as member even if they are OP due to a client-side limitation",
+            since = "1.3.1.2-PN")
     public void update() {
         AdventureSettingsPacket pk = new AdventureSettingsPacket();
         for (Type t : Type.values()) {

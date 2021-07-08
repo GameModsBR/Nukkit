@@ -1,12 +1,12 @@
 package cn.nukkit.network.protocol;
 
+import cn.nukkit.api.Since;
 import cn.nukkit.entity.data.EntityMetadata;
 import cn.nukkit.utils.Binary;
 import lombok.ToString;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * @author MagicDroidX (Nukkit Project)
  */
 @ToString
 public class SetEntityDataPacket extends DataPacket {
@@ -19,7 +19,7 @@ public class SetEntityDataPacket extends DataPacket {
 
     public long eid;
     public EntityMetadata metadata;
-    public long frame;
+    @Since("1.4.0.0-PN") public long frame;
 
     @Override
     public void decode() {

@@ -1,6 +1,8 @@
 package cn.nukkit.entity.item;
 
 import cn.nukkit.Player;
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityLiving;
 import cn.nukkit.entity.passive.EntityWaterAnimal;
@@ -9,8 +11,8 @@ import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.utils.MinecartType;
 
 /**
- * Created by Snake1999 on 2016/1/30.
- * Package cn.nukkit.entity.item in project Nukkit.
+ * @author Snake1999
+ * @since 2016/1/30
  */
 public class EntityMinecartEmpty extends EntityMinecartAbstract {
 
@@ -25,14 +27,21 @@ public class EntityMinecartEmpty extends EntityMinecartAbstract {
         super(chunk, nbt);
     }
 
+    @PowerNukkitOnly
+    @Since("1.5.1.0-PN")
     @Override
-    public String getName() {
+    public String getOriginalName() {
         return getType().getName();
     }
 
     @Override
     public MinecartType getType() {
         return MinecartType.valueOf(0);
+    }
+
+    @Override
+    public String getInteractButtonText() {
+        return "action.interact.ride.minecart";
     }
 
     @Override

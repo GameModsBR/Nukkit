@@ -1,10 +1,12 @@
 package cn.nukkit.block;
 
+import cn.nukkit.api.PowerNukkitDifference;
 import cn.nukkit.item.ItemTool;
+import cn.nukkit.utils.BlockColor;
 
 /**
- * Created on 2015/11/25 by xtypr.
- * Package cn.nukkit.block in project Nukkit .
+ * @author xtypr
+ * @since 2015/11/25
  */
 public class BlockStairsStoneBrick extends BlockStairs {
     public BlockStairsStoneBrick() {
@@ -26,6 +28,11 @@ public class BlockStairsStoneBrick extends BlockStairs {
     }
 
     @Override
+    public int getToolTier() {
+        return ItemTool.TIER_WOODEN;
+    }
+
+    @Override
     public double getHardness() {
         return 1.5;
     }
@@ -38,5 +45,11 @@ public class BlockStairsStoneBrick extends BlockStairs {
     @Override
     public String getName() {
         return "Stone Brick Stairs";
+    }
+
+    @PowerNukkitDifference(info = "Fixed the color", since = "1.3.0.0-PN")
+    @Override
+    public BlockColor getColor() {
+        return BlockColor.STONE_BLOCK_COLOR;
     }
 }

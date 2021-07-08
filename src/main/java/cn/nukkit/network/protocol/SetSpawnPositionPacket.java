@@ -1,5 +1,8 @@
 package cn.nukkit.network.protocol;
 
+import cn.nukkit.api.DeprecationDetails;
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
 import lombok.ToString;
 
 /**
@@ -17,8 +20,10 @@ public class SetSpawnPositionPacket extends DataPacket {
     public int y;
     public int z;
     public int x;
+    
+    @Since("1.3.0.0-PN")
     public int dimension = 0;
-
+    
     @Override
     public void decode() {
 

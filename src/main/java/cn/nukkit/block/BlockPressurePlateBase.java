@@ -1,6 +1,11 @@
 package cn.nukkit.block;
 
 import cn.nukkit.Player;
+import cn.nukkit.api.PowerNukkitDifference;
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
+import cn.nukkit.blockproperty.BlockProperties;
+import cn.nukkit.blockproperty.CommonBlockProperties;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.event.Event;
 import cn.nukkit.event.block.BlockRedstoneEvent;
@@ -8,22 +13,39 @@ import cn.nukkit.event.entity.EntityInteractEvent;
 import cn.nukkit.event.player.PlayerInteractEvent;
 import cn.nukkit.event.player.PlayerInteractEvent.Action;
 import cn.nukkit.item.Item;
-import cn.nukkit.item.ItemBlock;
+import cn.nukkit.item.ItemTool;
 import cn.nukkit.level.GlobalBlockPalette;
 import cn.nukkit.level.Level;
 import cn.nukkit.math.AxisAlignedBB;
 import cn.nukkit.math.BlockFace;
 import cn.nukkit.math.SimpleAxisAlignedBB;
 import cn.nukkit.network.protocol.LevelSoundEventPacket;
+import cn.nukkit.utils.RedstoneComponent;
+
+import javax.annotation.Nonnull;
+
+import static cn.nukkit.blockproperty.CommonBlockProperties.REDSTONE_SIGNAL;
 
 /**
- * Created by Snake1999 on 2016/1/11.
- * Package cn.nukkit.block in project nukkit
+ * @author Snake1999
+ * @since 2016/1/11
  */
-public abstract class BlockPressurePlateBase extends BlockFlowable {
+@PowerNukkitDifference(info = "Implements RedstoneComponent and uses methods from it.", since = "1.4.0.0-PN")
+public abstract class BlockPressurePlateBase extends BlockFlowable implements RedstoneComponent {
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public static final BlockProperties PROPERTIES = CommonBlockProperties.REDSTONE_SIGNAL_BLOCK_PROPERTY;
 
     protected float onPitch;
     protected float offPitch;
+
+    @Since("1.4.0.0-PN")
+    @PowerNukkitOnly
+    @Nonnull
+    @Override
+    public BlockProperties getProperties() {
+        return PROPERTIES;
+    }
 
     protected BlockPressurePlateBase() {
         this(0);
@@ -79,14 +101,22 @@ public abstract class BlockPressurePlateBase extends BlockFlowable {
     }
 
     public boolean isActivated() {
-        return this.getDamage() == 0;
+        return getRedstonePower() == 0;
     }
 
+    @PowerNukkitOnly
+    @Override
+    public int getWaterloggingLevel() {
+        return 1;
+    }
+
+    @PowerNukkitDifference(info = "Allow to be placed on top of the walls", since = "1.3.0.0-PN")
+    @PowerNukkitDifference(since = "1.4.0.0-PN", info = "Fixed support logic")
     @Override
     public int onUpdate(int type) {
         if (type == Level.BLOCK_UPDATE_NORMAL) {
-            if (this.down().isTransparent()) {
-                this.level.useBreakOn(this);
+            if (!BlockLever.isSupportValid(down(), BlockFace.UP)) {
+                this.level.useBreakOn(this, ItemTool.getBestTool(getToolType()));
             }
         } else if (type == Level.BLOCK_UPDATE_SCHEDULED) {
             int power = this.getRedstonePower();
@@ -99,9 +129,11 @@ public abstract class BlockPressurePlateBase extends BlockFlowable {
         return 0;
     }
 
+    @PowerNukkitDifference(info = "Allow to be placed on top of the walls", since = "1.3.0.0-PN")
+    @PowerNukkitDifference(since = "1.4.0.0-PN", info = "Fixed support logic")
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, double fx, double fy, double fz, Player player) {
-        if (block.down().isTransparent()) {
+    public boolean place(@Nonnull Item item, @Nonnull Block block, @Nonnull Block target, @Nonnull BlockFace face, double fx, double fy, double fz, Player player) {
+        if (!BlockLever.isSupportValid(down(), BlockFace.UP)) {
             return false;
         }
 
@@ -116,6 +148,10 @@ public abstract class BlockPressurePlateBase extends BlockFlowable {
 
     @Override
     public void onEntityCollide(Entity entity) {
+        if (!this.level.getServer().isRedstoneEnabled()) {
+            return;
+        }
+
         int power = getRedstonePower();
 
         if (power == 0) {
@@ -144,8 +180,8 @@ public abstract class BlockPressurePlateBase extends BlockFlowable {
             this.setRedstonePower(strength);
             this.level.setBlock(this, this, false, false);
 
-            this.level.updateAroundRedstone(this, null);
-            this.level.updateAroundRedstone(this.getLocation().down(), null);
+            updateAroundRedstone();
+            RedstoneComponent.updateAroundRedstone(this.getSide(BlockFace.DOWN));
 
             if (!isPowered && wasPowered) {
                 this.playOffSound();
@@ -166,8 +202,8 @@ public abstract class BlockPressurePlateBase extends BlockFlowable {
         this.level.setBlock(this, Block.get(BlockID.AIR), true, true);
 
         if (this.getRedstonePower() > 0) {
-            this.level.updateAroundRedstone(this, null);
-            this.level.updateAroundRedstone(this.getLocation().down(), null);
+            updateAroundRedstone();
+            RedstoneComponent.updateAroundRedstone(this.getSide(BlockFace.DOWN));
         }
 
         return true;
@@ -184,11 +220,11 @@ public abstract class BlockPressurePlateBase extends BlockFlowable {
     }
 
     public int getRedstonePower() {
-        return this.getDamage();
+        return getPropertyValue(REDSTONE_SIGNAL);
     }
 
     public void setRedstonePower(int power) {
-        this.setDamage(power);
+        setIntValue(REDSTONE_SIGNAL, power);
     }
 
     protected void playOnSound() {
@@ -200,9 +236,4 @@ public abstract class BlockPressurePlateBase extends BlockFlowable {
     }
 
     protected abstract int computeRedstoneStrength();
-
-    @Override
-    public Item toItem() {
-        return new ItemBlock(this, 0, 1);
-    }
 }

@@ -1,13 +1,16 @@
 package cn.nukkit.entity.item;
 
+import cn.nukkit.api.PowerNukkitDifference;
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.projectile.EntityProjectile;
 import cn.nukkit.event.potion.PotionCollideEvent;
+import cn.nukkit.level.Sound;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.level.particle.Particle;
 import cn.nukkit.level.particle.SpellParticle;
 import cn.nukkit.nbt.tag.CompoundTag;
-import cn.nukkit.network.protocol.LevelSoundEventPacket;
 import cn.nukkit.potion.Effect;
 import cn.nukkit.potion.Potion;
 
@@ -88,7 +91,8 @@ public class EntityPotion extends EntityProjectile {
         this.splash(entity);
     }
 
-    private void splash(Entity collidedWith) {
+    @PowerNukkitDifference(info = "Using new method to play sounds", since = "1.4.0.0-PN")
+    protected void splash(Entity collidedWith) {
         Potion potion = Potion.getPotion(this.potionId);
         PotionCollideEvent event = new PotionCollideEvent(potion, this);
         this.server.getPluginManager().callEvent(event);
@@ -127,7 +131,7 @@ public class EntityPotion extends EntityProjectile {
         particle = new SpellParticle(this, r, g, b);
 
         this.getLevel().addParticle(particle);
-        this.getLevel().addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_GLASS);
+        this.getLevel().addSound(this, Sound.RANDOM_GLASS);
 
         Entity[] entities = this.getLevel().getNearbyEntities(this.getBoundingBox().grow(4.125, 2.125, 4.125));
         for (Entity anEntity : entities) {
@@ -159,5 +163,13 @@ public class EntityPotion extends EntityProjectile {
 
         this.timing.stopTiming();
         return hasUpdate;
+    }
+
+
+    @PowerNukkitOnly
+    @Since("1.5.1.0-PN")
+    @Override
+    public String getOriginalName() {
+        return "Potion";
     }
 }

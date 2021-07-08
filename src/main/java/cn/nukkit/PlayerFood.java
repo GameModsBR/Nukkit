@@ -9,7 +9,8 @@ import cn.nukkit.item.food.Food;
 import cn.nukkit.potion.Effect;
 
 /**
- * Created by funcraft on 2015/11/11.
+ * @author funcraft
+ * @since 2015/11/11
  */
 public class PlayerFood {
 
@@ -144,7 +145,7 @@ public class PlayerFood {
                     if (this.getPlayer().getHealth() < this.getPlayer().getMaxHealth()) {
                         EntityRegainHealthEvent ev = new EntityRegainHealthEvent(this.getPlayer(), 1, EntityRegainHealthEvent.CAUSE_EATING);
                         this.getPlayer().heal(ev);
-                        //this.updateFoodExpLevel(3);
+                        this.updateFoodExpLevel(6);
                     }
                     this.foodTickTimer = 0;
                 }

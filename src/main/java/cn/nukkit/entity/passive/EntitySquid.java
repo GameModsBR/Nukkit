@@ -1,10 +1,11 @@
 package cn.nukkit.entity.passive;
 
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
 import cn.nukkit.item.Item;
-import cn.nukkit.item.ItemDye;
+import cn.nukkit.item.MinecraftItemID;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.nbt.tag.CompoundTag;
-import cn.nukkit.utils.DyeColor;
 
 /**
  * @author PikyCZ
@@ -24,12 +25,12 @@ public class EntitySquid extends EntityWaterAnimal {
 
     @Override
     public float getWidth() {
-        return 0.8f;
+        return 0.95f;
     }
 
     @Override
     public float getHeight() {
-        return 0.8f;
+        return 0.95f;
     }
 
     @Override
@@ -40,6 +41,14 @@ public class EntitySquid extends EntityWaterAnimal {
 
     @Override
     public Item[] getDrops() {
-        return new Item[]{new ItemDye(DyeColor.BLACK.getDyeData())};
+        return new Item[]{MinecraftItemID.INK_SAC.get(1)};
+    }
+
+
+    @PowerNukkitOnly
+    @Since("1.5.1.0-PN")
+    @Override
+    public String getOriginalName() {
+        return "Squid";
     }
 }

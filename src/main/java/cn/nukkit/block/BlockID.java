@@ -1,5 +1,9 @@
 package cn.nukkit.block;
 
+import cn.nukkit.api.DeprecationDetails;
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
+
 public interface BlockID {
     int AIR = 0;
     int STONE = 1;
@@ -71,6 +75,7 @@ public interface BlockID {
     int TORCH = 50;
     int FIRE = 51;
     int MONSTER_SPAWNER = 52;
+    @PowerNukkitOnly @Since("1.4.0.0-PN") int MOB_SPAWNER = MONSTER_SPAWNER;
     int WOOD_STAIRS = 53;
     int WOODEN_STAIRS = 53;
     int OAK_WOOD_STAIRS = 53;
@@ -215,7 +220,7 @@ public interface BlockID {
     int WOOD_SLABS = 158;
     int WOODEN_SLABS = 158;
     int STAINED_TERRACOTTA = 159;
-    int STAINED_HARDENED_CLAY = 159;
+    int STAINED_HARDENED_CLAY = STAINED_TERRACOTTA;
     int STAINED_GLASS_PANE = 160;
     int LEAVES2 = 161;
     int LEAVE2 = 161;
@@ -234,6 +239,7 @@ public interface BlockID {
     int HAY_BALE = 170;
     int CARPET = 171;
     int TERRACOTTA = 172;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int HARDENED_CLAY = TERRACOTTA;
     int COAL_BLOCK = 173;
     int PACKED_ICE = 174;
     int DOUBLE_PLANT = 175;
@@ -259,21 +265,23 @@ public interface BlockID {
     int ITEM_FRAME_BLOCK = 199;
     int CHORUS_FLOWER = 200;
     int PURPUR_BLOCK = 201;
-
+    //int COLORED_TORCH_RG = 202;
     int PURPUR_STAIRS = 203;
-    //int DOUBLE_PURPUR_SLAB = 204;
+    //int COLORED_TORCH_BP = 204;
     int UNDYED_SHULKER_BOX = 205;
     int END_BRICKS = 206;
     //Note: frosted ice CAN NOT BE HARVESTED WITH HAND -- canHarvestWithHand method should be overridden FALSE.
     int ICE_FROSTED = 207;
     int END_ROD = 208;
     int END_GATEWAY = 209;
-
+    @PowerNukkitOnly @Since("1.4.0.0-PN") int ALLOW = 210;
+    @PowerNukkitOnly @Since("1.4.0.0-PN") int DENY = 211;
+    @PowerNukkitOnly @Since("1.4.0.0-PN") int BORDER_BLOCK = 212;
     int MAGMA = 213;
     int BLOCK_NETHER_WART_BLOCK = 214;
     int RED_NETHER_BRICK = 215;
     int BONE_BLOCK = 216;
-
+    @PowerNukkitOnly @Since("1.4.0.0-PN") int STRUCTURE_VOID = 217;
     int SHULKER_BOX = 218;
     int PURPLE_GLAZED_TERRACOTTA = 219;
     int WHITE_GLAZED_TERRACOTTA = 220;
@@ -286,23 +294,230 @@ public interface BlockID {
     int GRAY_GLAZED_TERRACOTTA = 227;
     int SILVER_GLAZED_TERRACOTTA = 228;
     int CYAN_GLAZED_TERRACOTTA = 229;
+
     int BLUE_GLAZED_TERRACOTTA = 231;
     int BROWN_GLAZED_TERRACOTTA = 232;
     int GREEN_GLAZED_TERRACOTTA = 233;
     int RED_GLAZED_TERRACOTTA = 234;
     int BLACK_GLAZED_TERRACOTTA = 235;
     int CONCRETE = 236;
-    int CONCRETE_POWDER = 237;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int CONCRETEPOWDER = 237;
+    int CONCRETE_POWDER = CONCRETEPOWDER;
 
     int CHORUS_PLANT = 240;
     int STAINED_GLASS = 241;
+
     int PODZOL = 243;
     int BEETROOT_BLOCK = 244;
     int STONECUTTER = 245;
     int GLOWING_OBSIDIAN = 246;
-    int NETHER_REACTOR = 247; //Should not be removed
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int NETHERREACTOR = 247;
+    int NETHER_REACTOR = NETHERREACTOR;
+
+    @Since("1.5.0.0-PN") @Deprecated @DeprecationDetails(by = "PowerNukkit",
+            reason = "This was added by Cloudburst Nukkit, but it is a tecnical block, avoid usinig it.",
+            since = "1.5.0.0-PN")
+    int INFO_UPDATE = 248;
+
+    @Since("1.5.0.0-PN") @Deprecated @DeprecationDetails(by = "PowerNukkit",
+            reason = "This was added by Cloudburst Nukkit, but it is a tecnical block, avoid usinig it.",
+            since = "1.5.0.0-PN")
+    int INFO_UPDATE2 = 249;
 
     int PISTON_EXTENSION = 250;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int MOVING_BLOCK = PISTON_EXTENSION;
 
     int OBSERVER = 251;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int STRUCTURE_BLOCK = 252;
+
+    @PowerNukkitOnly int PRISMARINE_STAIRS = 257;
+    @PowerNukkitOnly int DARK_PRISMARINE_STAIRS = 258;
+    @PowerNukkitOnly int PRISMARINE_BRICKS_STAIRS = 259;
+    @PowerNukkitOnly int STRIPPED_SPRUCE_LOG = 260;
+    @PowerNukkitOnly int STRIPPED_BIRCH_LOG = 261;
+    @PowerNukkitOnly int STRIPPED_JUNGLE_LOG = 262;
+    @PowerNukkitOnly int STRIPPED_ACACIA_LOG = 263;
+    @PowerNukkitOnly int STRIPPED_DARK_OAK_LOG = 264;
+    @PowerNukkitOnly int STRIPPED_OAK_LOG = 265;
+    @PowerNukkitOnly int BLUE_ICE = 266;
+
+    @PowerNukkitOnly int SEAGRASS = 385;
+    @PowerNukkitOnly int CORAL = 386;
+    @PowerNukkitOnly int CORAL_BLOCK = 387;
+    @PowerNukkitOnly int CORAL_FAN = 388;
+    @PowerNukkitOnly int CORAL_FAN_DEAD = 389;
+    @PowerNukkitOnly int CORAL_FAN_HANG = 390;
+    @PowerNukkitOnly int CORAL_FAN_HANG2 = 391;
+    @PowerNukkitOnly int CORAL_FAN_HANG3 = 392;
+    @PowerNukkitOnly int BLOCK_KELP = 393;
+    @PowerNukkitOnly int DRIED_KELP_BLOCK = 394;
+    @PowerNukkitOnly int ACACIA_BUTTON = 395;
+    @PowerNukkitOnly int BIRCH_BUTTON = 396;
+    @PowerNukkitOnly int DARK_OAK_BUTTON = 397;
+    @PowerNukkitOnly int JUNGLE_BUTTON = 398;
+    @PowerNukkitOnly int SPRUCE_BUTTON = 399;
+    @PowerNukkitOnly int ACACIA_TRAPDOOR = 400;
+    @PowerNukkitOnly int BIRCH_TRAPDOOR = 401;
+    @PowerNukkitOnly int DARK_OAK_TRAPDOOR = 402;
+    @PowerNukkitOnly int JUNGLE_TRAPDOOR = 403;
+    @PowerNukkitOnly int SPRUCE_TRAPDOOR = 404;
+    @PowerNukkitOnly int ACACIA_PRESSURE_PLATE = 405;
+    @PowerNukkitOnly int BIRCH_PRESSURE_PLATE = 406;
+    @PowerNukkitOnly int DARK_OAK_PRESSURE_PLATE = 407;
+    @PowerNukkitOnly int JUNGLE_PRESSURE_PLATE = 408;
+    @PowerNukkitOnly int SPRUCE_PRESSURE_PLATE = 409;
+    @PowerNukkitOnly int CARVED_PUMPKIN = 410;
+    @PowerNukkitOnly int SEA_PICKLE = 411;
+    @PowerNukkitOnly int CONDUIT = 412;
+
+    @PowerNukkitOnly int TURTLE_EGG = 414;
+    @PowerNukkitOnly int BUBBLE_COLUMN = 415;
+    @PowerNukkitOnly int BARRIER = 416;
+    @PowerNukkitOnly int STONE_SLAB3 = 417;
+    @PowerNukkitOnly int BAMBOO = 418;
+    @PowerNukkitOnly int BAMBOO_SAPLING = 419;
+    @PowerNukkitOnly int SCAFFOLDING = 420;
+    @PowerNukkitOnly int STONE_SLAB4 = 421;
+    @PowerNukkitOnly int DOUBLE_STONE_SLAB3 = 422;
+    @PowerNukkitOnly int DOUBLE_STONE_SLAB4 = 423;
+    @PowerNukkitOnly int GRANITE_STAIRS = 424;
+    @PowerNukkitOnly int DIORITE_STAIRS = 425;
+    @PowerNukkitOnly int ANDESITE_STAIRS = 426;
+    @PowerNukkitOnly int POLISHED_GRANITE_STAIRS = 427;
+    @PowerNukkitOnly int POLISHED_DIORITE_STAIRS = 428;
+    @PowerNukkitOnly int POLISHED_ANDESITE_STAIRS = 429;
+    @PowerNukkitOnly int MOSSY_STONE_BRICK_STAIRS = 430;
+    @PowerNukkitOnly int SMOOTH_RED_SANDSTONE_STAIRS = 431;
+    @PowerNukkitOnly int SMOOTH_SANDSTONE_STAIRS = 432;
+    @PowerNukkitOnly int END_BRICK_STAIRS = 433;
+    @PowerNukkitOnly int MOSSY_COBBLESTONE_STAIRS = 434;
+    @PowerNukkitOnly int NORMAL_STONE_STAIRS = 435;
+    @PowerNukkitOnly int SPRUCE_STANDING_SIGN = 436;
+    @PowerNukkitOnly int SPRUCE_WALL_SIGN = 437;
+    @PowerNukkitOnly int SMOOTH_STONE = 438;
+    @PowerNukkitOnly int RED_NETHER_BRICK_STAIRS = 439;
+    @PowerNukkitOnly int SMOOTH_QUARTZ_STAIRS = 440;
+    @PowerNukkitOnly int BIRCH_STANDING_SIGN = 441;
+    @PowerNukkitOnly int BIRCH_WALL_SIGN = 442;
+    @PowerNukkitOnly int JUNGLE_STANDING_SIGN = 443;
+    @PowerNukkitOnly int JUNGLE_WALL_SIGN = 444;
+    @PowerNukkitOnly int ACACIA_STANDING_SIGN = 445;
+    @PowerNukkitOnly int ACACIA_WALL_SIGN = 446;
+    @PowerNukkitOnly int DARKOAK_STANDING_SIGN = 447;
+    @PowerNukkitOnly int DARK_OAK_STANDING_SIGN = 447;
+    @PowerNukkitOnly int DARKOAK_WALL_SIGN = 448;
+    @PowerNukkitOnly int DARK_OAK_WALL_SIGN = 448;
+    @PowerNukkitOnly int LECTERN = 449;
+    @PowerNukkitOnly int GRINDSTONE = 450;
+    @PowerNukkitOnly int BLAST_FURNACE = 451;
+    @PowerNukkitOnly int STONECUTTER_BLOCK = 452;
+    @PowerNukkitOnly int SMOKER = 453;
+    @PowerNukkitOnly int LIT_SMOKER = 454;
+    @PowerNukkitOnly int CARTOGRAPHY_TABLE = 455;
+    @PowerNukkitOnly int FLETCHING_TABLE = 456;
+    @PowerNukkitOnly int SMITHING_TABLE = 457;
+    @PowerNukkitOnly int BARREL = 458;
+    @PowerNukkitOnly int LOOM = 459;
+
+     @PowerNukkitOnly int BELL = 461;
+     @PowerNukkitOnly int SWEET_BERRY_BUSH = 462;
+     @PowerNukkitOnly int LANTERN = 463;
+     @PowerNukkitOnly int CAMPFIRE_BLOCK = 464;
+     @PowerNukkitOnly int LAVA_CAULDRON = 465;
+     @PowerNukkitOnly int JIGSAW = 466;
+     @PowerNukkitOnly int WOOD_BARK = 467;
+     @PowerNukkitOnly int COMPOSTER = 468;
+     @PowerNukkitOnly int LIT_BLAST_FURNACE = 469;
+     @PowerNukkitOnly int LIGHT_BLOCK = 470;
+     @PowerNukkitOnly int WITHER_ROSE = 471;
+     @PowerNukkitOnly int STICKYPISTONARMCOLLISION = 472;
+     @PowerNukkitOnly int PISTON_HEAD_STICKY = 472;
+     @PowerNukkitOnly int BEE_NEST = 473;
+     @PowerNukkitOnly int BEEHIVE = 474;
+     @PowerNukkitOnly int HONEY_BLOCK = 475;
+     @PowerNukkitOnly int HONEYCOMB_BLOCK = 476;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int LODESTONE = 477;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int CRIMSON_ROOTS = 478;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int WARPED_ROOTS = 479;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int CRIMSON_STEM = 480;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int WARPED_STEM = 481;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int WARPED_WART_BLOCK = 482;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int CRIMSON_FUNGUS = 483;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int WARPED_FUNGUS = 484;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int SHROOMLIGHT = 485;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int WEEPING_VINES = 486;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int CRIMSON_NYLIUM = 487;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int WARPED_NYLIUM = 488;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int BASALT = 489;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int POLISHED_BASALT = 490;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int SOUL_SOIL = 491;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int SOUL_FIRE = 492;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int NETHER_SPROUTS_BLOCK = 493;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int TARGET = 494;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int STRIPPED_CRIMSON_STEM = 495;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int STRIPPED_WARPED_STEM = 496;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int CRIMSON_PLANKS = 497;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int WARPED_PLANKS = 498;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int CRIMSON_DOOR_BLOCK = 499;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int WARPED_DOOR_BLOCK = 500;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int CRIMSON_TRAPDOOR = 501;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int WARPED_TRAPDOOR = 502;
+    // 503
+    // 504
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int CRIMSON_STANDING_SIGN = 505;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int WARPED_STANDING_SIGN = 506;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int CRIMSON_WALL_SIGN = 507;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int WARPED_WALL_SIGN = 508;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int CRIMSON_STAIRS = 509;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int WARPED_STAIRS = 510;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int CRIMSON_FENCE = 511;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int WARPED_FENCE = 512;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int CRIMSON_FENCE_GATE = 513;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int WARPED_FENCE_GATE = 514;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int CRIMSON_BUTTON = 515;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int WARPED_BUTTON = 516;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int CRIMSON_PRESSURE_PLATE = 517;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int WARPED_PRESSURE_PLATE = 518;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int CRIMSON_SLAB = 519;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int WARPED_SLAB = 520;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int CRIMSON_DOUBLE_SLAB = 521;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int WARPED_DOUBLE_SLAB = 522;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int SOUL_TORCH = 523;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int SOUL_LANTERN = 524;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int NETHERITE_BLOCK = 525;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int ANCIENT_DERBRIS = 526;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int RESPAWN_ANCHOR = 527;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int BLACKSTONE = 528;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int POLISHED_BLACKSTONE_BRICKS = 529;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int POLISHED_BLACKSTONE_BRICK_STAIRS = 530;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int BLACKSTONE_STAIRS = 531;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int BLACKSTONE_WALL = 532;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int POLISHED_BLACKSTONE_BRICK_WALL = 533;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int CHISELED_POLISHED_BLACKSTONE = 534;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int CRACKED_POLISHED_BLACKSTONE_BRICKS = 535;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int GILDED_BLACKSTONE = 536;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int BLACKSTONE_SLAB = 537;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int BLACKSTONE_DOUBLE_SLAB = 538;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int POLISHED_BLACKSTONE_BRICK_SLAB = 539;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int POLISHED_BLACKSTONE_BRICK_DOUBLE_SLAB = 540;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int CHAIN_BLOCK = 541;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int TWISTING_VINES = 542;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int NETHER_GOLD_ORE = 543;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int CRYING_OBSIDIAN = 544;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int SOUL_CAMPFIRE_BLOCK = 545;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int POLISHED_BLACKSTONE = 546;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int POLISHED_BLACKSTONE_STAIRS = 547;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int POLISHED_BLACKSTONE_SLAB = 548;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int POLISHED_BLACKSTONE_DOUBLE_SLAB = 549;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int POLISHED_BLACKSTONE_PRESSURE_PLATE = 550;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int POLISHED_BLACKSTONE_BUTTON = 551;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int POLISHED_BLACKSTONE_WALL = 552;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int WARPED_HYPHAE = 553;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int CRIMSON_HYPHAE = 554;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int STRIPPED_CRIMSON_HYPHAE = 555;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int STRIPPED_WARPED_HYPHAE = 556;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int CHISELED_NETHER_BRICKS = 557;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int CRACKED_NETHER_BRICKS = 558;
+    @Since("1.4.0.0-PN") @PowerNukkitOnly int QUARTZ_BRICKS = 559;
+    //int UNKNOWN = 600;
 }

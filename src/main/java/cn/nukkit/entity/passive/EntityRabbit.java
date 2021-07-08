@@ -1,11 +1,13 @@
 package cn.nukkit.entity.passive;
 
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.nbt.tag.CompoundTag;
 
 /**
- * Author: BeYkeRYkt Nukkit Project
+ * @author BeYkeRYkt (Nukkit Project)
  */
 public class EntityRabbit extends EntityAnimal {
 
@@ -18,21 +20,23 @@ public class EntityRabbit extends EntityAnimal {
     @Override
     public float getWidth() {
         if (this.isBaby()) {
-            return 0.2f;
+            return 0.268f;
         }
-        return 0.4f;
+        return 0.67f;
     }
 
     @Override
     public float getHeight() {
         if (this.isBaby()) {
-            return 0.25f;
+            return 0.268f;
         }
-        return 0.5f;
+        return 0.67f;
     }
 
+    @PowerNukkitOnly
+    @Since("1.5.1.0-PN")
     @Override
-    public String getName() {
+    public String getOriginalName() {
         return "Rabbit";
     }
 

@@ -1,6 +1,8 @@
 package cn.nukkit.entity.passive;
 
 import cn.nukkit.Player;
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
 import cn.nukkit.entity.data.ByteEntityData;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.item.Item;
@@ -13,7 +15,7 @@ import cn.nukkit.utils.DyeColor;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Author: BeYkeRYkt Nukkit Project
+ * @author BeYkeRYkt (Nukkit Project)
  */
 public class EntitySheep extends EntityAnimal {
 
@@ -42,8 +44,10 @@ public class EntitySheep extends EntityAnimal {
         return 1.3f;
     }
 
+    @PowerNukkitOnly
+    @Since("1.5.1.0-PN")
     @Override
-    public String getName() {
+    public String getOriginalName() {
         return "Sheep";
     }
 
@@ -81,7 +85,11 @@ public class EntitySheep extends EntityAnimal {
 
     @Override
     public boolean onInteract(Player player, Item item, Vector3 clickedPos) {
-        if (item.getId() == Item.DYE) {
+        if (super.onInteract(player, item, clickedPos)) {
+            return true;
+        }
+
+        if (item instanceof ItemDye) {
             this.setColor(((ItemDye) item).getDyeColor().getWoolData());
             return true;
         }
@@ -106,7 +114,7 @@ public class EntitySheep extends EntityAnimal {
         if (this.lastDamageCause instanceof EntityDamageByEntityEvent) {
             return new Item[]{Item.get(((this.isOnFire()) ? Item.COOKED_MUTTON : Item.RAW_MUTTON)), Item.get(Item.WOOL, getColor(), 1)};
         }
-        return new Item[0];
+        return Item.EMPTY_ARRAY;
     }
 
     public void setColor(int color) {

@@ -1,17 +1,36 @@
 package cn.nukkit.block;
 
-import cn.nukkit.Player;
-import cn.nukkit.item.Item;
-import cn.nukkit.item.ItemBlock;
-import cn.nukkit.item.ItemTool;
-import cn.nukkit.math.BlockFace;
+import cn.nukkit.api.PowerNukkitDifference;
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
+import cn.nukkit.blockproperty.ArrayBlockProperty;
+import cn.nukkit.blockproperty.BlockProperties;
+import cn.nukkit.blockproperty.BlockProperty;
+import cn.nukkit.blockproperty.value.WoodType;
+import cn.nukkit.blockstate.BlockState;
+import cn.nukkit.blockstate.IBlockState;
+import cn.nukkit.blockstate.exception.InvalidBlockStateException;
 import cn.nukkit.utils.BlockColor;
 
+import javax.annotation.Nonnull;
+
+import static cn.nukkit.blockproperty.CommonBlockProperties.PILLAR_AXIS;
+
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * @author MagicDroidX (Nukkit Project)
  */
-public class BlockWood extends BlockSolidMeta {
+@PowerNukkitDifference(info = "Extends BlockLog instead of BlockSolidMeta only in PowerNukkit", since = "1.4.0.0-PN")
+public class BlockWood extends BlockLog {
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public static final BlockProperty<WoodType> OLD_LOG_TYPE = new ArrayBlockProperty<>("old_log_type", true, new WoodType[]{
+            WoodType.OAK, WoodType.SPRUCE, WoodType.BIRCH, WoodType.JUNGLE
+    });
+
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public static final BlockProperties PROPERTIES = new BlockProperties(OLD_LOG_TYPE, PILLAR_AXIS);
+    
     public static final int OAK = 0;
     public static final int SPRUCE = 1;
     public static final int BIRCH = 2;
@@ -31,6 +50,14 @@ public class BlockWood extends BlockSolidMeta {
         return WOOD;
     }
 
+    @Since("1.4.0.0-PN")
+    @PowerNukkitOnly
+    @Nonnull
+    @Override
+    public BlockProperties getProperties() {
+        return PROPERTIES;
+    }
+
     @Override
     public double getHardness() {
         return 2;
@@ -38,19 +65,48 @@ public class BlockWood extends BlockSolidMeta {
 
     @Override
     public double getResistance() {
-        return 10;
+        return 2;
     }
-
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public WoodType getWoodType() {
+        return getPropertyValue(OLD_LOG_TYPE);
+    }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public void setWoodType(WoodType woodType) {
+        setPropertyValue(OLD_LOG_TYPE, woodType);
+    }
+    
     @Override
     public String getName() {
-        String[] names = new String[]{
-                "Oak Wood",
-                "Spruce Wood",
-                "Birch Wood",
-                "Jungle Wood"
-        };
+        return getWoodType().getEnglishName() + " Log";
+    }
 
-        return names[this.getDamage() & 0x03];
+    @Since("1.5.1.0-PN")
+    @PowerNukkitOnly
+    @Nonnull
+    @Override
+    public Block forState(@Nonnull IBlockState state) throws InvalidBlockStateException {
+        int id = getId();
+        if (id != LOG && id != LOG2) {
+            return super.forState(state);
+        }
+
+        id = state.getBlockId();
+        if (id != LOG && id != LOG2 || state.getBitSize() != 4) {
+            return super.forState(state);
+        }
+
+        int exactInt = state.getExactIntStorage();
+        if ((exactInt & 0b1100) == 0b1100) {
+            int increment = state.getBlockId() == BlockID.LOG? 0b000 : 0b100;
+            return BlockState.of(BlockID.WOOD_BARK, (exactInt & 0b11) + increment).getBlock(this, layer);
+        }
+
+        return super.forState(state);
     }
 
     @Override
@@ -64,44 +120,34 @@ public class BlockWood extends BlockSolidMeta {
     }
 
     @Override
-    public boolean place(Item item, Block block, Block target, BlockFace face, double fx, double fy, double fz, Player player) {
-        short[] faces = new short[]{
-                0,
-                0,
-                0b1000,
-                0b1000,
-                0b0100,
-                0b0100
-        };
-
-        this.setDamage(((this.getDamage() & 0x03) | faces[face.getIndex()]));
-        this.getLevel().setBlock(block, this, true, true);
-
-        return true;
-    }
-
-    @Override
-    public Item toItem() {
-        return new ItemBlock(this, this.getDamage() & 0x03);
-    }
-
-    @Override
-    public int getToolType() {
-        return ItemTool.TYPE_AXE;
+    protected BlockState getStrippedState() {
+        int strippedId;
+        switch (getWoodType()) {
+            default:
+            case OAK:
+                strippedId = STRIPPED_OAK_LOG;
+                break;
+            case SPRUCE:
+                strippedId = STRIPPED_SPRUCE_LOG;
+                break;
+            case BIRCH:
+                strippedId = STRIPPED_BIRCH_LOG;
+                break;
+            case JUNGLE:
+                strippedId = STRIPPED_JUNGLE_LOG;
+                break;
+            case ACACIA:
+                strippedId = STRIPPED_ACACIA_LOG;
+                break;
+            case DARK_OAK:
+                strippedId = STRIPPED_DARK_OAK_LOG;
+                break;
+        }
+        return BlockState.of(strippedId).withProperty(PILLAR_AXIS, getPillarAxis());
     }
 
     @Override
     public BlockColor getColor() {
-        switch(getDamage() & 0x07){
-            default:
-            case OAK:
-                return BlockColor.WOOD_BLOCK_COLOR;
-            case SPRUCE:
-                return BlockColor.SPRUCE_BLOCK_COLOR;
-            case BIRCH:
-                return BlockColor.SAND_BLOCK_COLOR;
-            case JUNGLE:
-                return BlockColor.DIRT_BLOCK_COLOR;
-        }
+        return getWoodType().getColor();
     }
 }

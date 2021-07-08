@@ -3,7 +3,8 @@ package cn.nukkit.block;
 import cn.nukkit.item.ItemTool;
 
 /**
- * Created by CreeperFace on 27. 11. 2016.
+ * @author CreeperFace
+ * @since 27. 11. 2016
  */
 public class BlockButtonWooden extends BlockButton {
 
@@ -22,7 +23,7 @@ public class BlockButtonWooden extends BlockButton {
 
     @Override
     public String getName() {
-        return "Wooden Button";
+        return "Oak Button";
     }
 
     @Override

@@ -1,15 +1,17 @@
 package cn.nukkit.network.protocol;
 
+import cn.nukkit.api.Since;
 import lombok.ToString;
 
+@Since("1.3.0.0-PN")
 @ToString
 public class PacketViolationWarningPacket extends DataPacket {
     public static final byte NETWORK_ID = ProtocolInfo.PACKET_VIOLATION_WARNING_PACKET;
 
-    public PacketViolationType type;
-    public PacketViolationSeverity severity;
-    public int packetId;
-    public String context;
+    @Since("1.3.0.0-PN") public PacketViolationType type;
+    @Since("1.3.0.0-PN") public PacketViolationSeverity severity;
+    @Since("1.3.0.0-PN") public int packetId;
+    @Since("1.3.0.0-PN") public String context;
 
     @Override
     public byte pid() {
@@ -33,11 +35,13 @@ public class PacketViolationWarningPacket extends DataPacket {
         this.putString(this.context);
     }
 
+    @Since("1.3.0.0-PN")
     public enum PacketViolationType {
         UNKNOWN,
         MALFORMED_PACKET
     }
 
+    @Since("1.3.0.0-PN")
     public enum PacketViolationSeverity {
         UNKNOWN,
         WARNING,

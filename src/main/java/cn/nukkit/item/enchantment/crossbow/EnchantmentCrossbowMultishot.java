@@ -1,9 +1,12 @@
 package cn.nukkit.item.enchantment.crossbow;
 
+import cn.nukkit.api.Since;
 import cn.nukkit.item.enchantment.Enchantment;
 
+@Since("1.4.0.0-PN")
 public class EnchantmentCrossbowMultishot extends EnchantmentCrossbow {
 
+    @Since("1.4.0.0-PN")
     public EnchantmentCrossbowMultishot() {
         super(Enchantment.ID_CROSSBOW_MULTISHOT, "crossbowMultishot", Rarity.RARE);
     }
@@ -11,11 +14,6 @@ public class EnchantmentCrossbowMultishot extends EnchantmentCrossbow {
     @Override
     public int getMinEnchantAbility(int level) {
         return 20;
-    }
-
-    @Override
-    public int getMaxEnchantAbility(int level) {
-        return 50 + this.getMinEnchantAbility(level);
     }
 
     @Override

@@ -1,8 +1,12 @@
 package cn.nukkit.entity;
 
 import cn.nukkit.Player;
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
 import cn.nukkit.entity.data.IntPositionEntityData;
 import cn.nukkit.entity.data.Skin;
+import cn.nukkit.item.Item;
+import cn.nukkit.item.ItemID;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.ListTag;
@@ -18,8 +22,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * @author MagicDroidX (Nukkit Project)
  */
 public class EntityHuman extends EntityHumanType {
 
@@ -49,14 +52,21 @@ public class EntityHuman extends EntityHumanType {
         return 1.8f;
     }
 
+    @Since("1.5.1.0-PN")
+    @PowerNukkitOnly
+    @Override
+    public float getSwimmingHeight() {
+        return getWidth();
+    }
+
     @Override
     public float getEyeHeight() {
-        return 1.62f;
+        return (float)(boundingBox.getMaxY() - boundingBox.getMinY() - 0.18);
     }
 
     @Override
     protected float getBaseOffset() {
-        return this.getEyeHeight();
+        return 1.62f;
     }
 
     protected Skin skin;
@@ -209,6 +219,13 @@ public class EntityHuman extends EntityHumanType {
         super.initEntity();
     }
 
+    @PowerNukkitOnly
+    @Since("1.5.1.0-PN")
+    @Override
+    public String getOriginalName() {
+        return "Human";
+    }
+    
     @Override
     public String getName() {
         return this.getNameTag();
@@ -360,4 +377,17 @@ public class EntityHuman extends EntityHumanType {
         }
     }
 
+    @Override
+    protected void onBlock(Entity entity, boolean animate) {
+        super.onBlock(entity, animate);
+        Item shield = getInventory().getItemInHand();
+        Item shieldOffhand = getOffhandInventory().getItem(0);
+        if (shield.getId() == ItemID.SHIELD) {
+            shield = damageArmor(shield, entity);
+            getInventory().setItemInHand(shield);
+        } else if (shieldOffhand.getId() == ItemID.SHIELD) {
+            shieldOffhand = damageArmor(shieldOffhand, entity);
+            getOffhandInventory().setItem(0, shieldOffhand);
+        }
+    }
 }

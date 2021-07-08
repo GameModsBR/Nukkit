@@ -1,14 +1,12 @@
 package cn.nukkit.network.protocol.types;
 
-
 import lombok.ToString;
 
 import java.util.OptionalLong;
 import java.util.UUID;
 
 /**
- * @author SupremeMortal
- * Nukkit project
+ * @author SupremeMortal (Nukkit project)
  */
 @ToString
 public final class CommandOriginData {

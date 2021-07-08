@@ -1,6 +1,8 @@
 package cn.nukkit.entity.item;
 
 import cn.nukkit.Player;
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
 import cn.nukkit.block.Block;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.inventory.InventoryHolder;
@@ -14,8 +16,8 @@ import cn.nukkit.nbt.tag.ListTag;
 import cn.nukkit.utils.MinecartType;
 
 /**
- * Created by Snake1999 on 2016/1/30.
- * Package cn.nukkit.entity.item in project Nukkit.
+ * @author Snake1999
+ * @since 2016/1/30
  */
 public class EntityMinecartChest extends EntityMinecartAbstract implements InventoryHolder {
 
@@ -28,8 +30,10 @@ public class EntityMinecartChest extends EntityMinecartAbstract implements Inven
         setDisplayBlock(Block.get(Block.CHEST), false);
     }
 
+    @PowerNukkitOnly
+    @Since("1.5.1.0-PN")
     @Override
-    public String getName() {
+    public String getOriginalName() {
         return getType().getName();
     }
 

@@ -1,9 +1,13 @@
 package cn.nukkit.nbt.tag;
 
+import cn.nukkit.api.PowerNukkitDifference;
 import cn.nukkit.nbt.stream.NBTInputStream;
 import cn.nukkit.nbt.stream.NBTOutputStream;
+import com.google.common.base.Preconditions;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.util.Objects;
 
 public class StringTag extends Tag {
     public String data;
@@ -12,10 +16,10 @@ public class StringTag extends Tag {
         super(name);
     }
 
-    public StringTag(String name, String data) {
+    @PowerNukkitDifference(since = "1.4.0.0-PN", info = "Throws NullPointerException instead of IllegalArgumentException if data is null")
+    public StringTag(String name, @Nonnull String data) {
         super(name);
-        this.data = data;
-        if (data == null) throw new IllegalArgumentException("Empty string not allowed");
+        this.data = Preconditions.checkNotNull(data, "Empty string not allowed");
     }
 
     @Override
@@ -56,5 +60,9 @@ public class StringTag extends Tag {
         }
         return false;
     }
-
+    
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), data);
+    }
 }

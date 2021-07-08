@@ -8,8 +8,7 @@ import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.nbt.tag.CompoundTag;
 
 /**
- * Author: BeYkeRYkt
- * Nukkit Project
+ * @author BeYkeRYkt (Nukkit Project)
  */
 public abstract class EntityTameable extends EntityAnimal implements EntityOwnable {
 
@@ -73,11 +72,6 @@ public abstract class EntityTameable extends EntityAnimal implements EntityOwnab
     @Override
     public Player getOwner() {
         return getServer().getPlayer(getOwnerName());
-    }
-
-    @Override
-    public String getName() {
-        return getNameTag();
     }
 
     public boolean isTamed() {

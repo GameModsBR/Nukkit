@@ -3,8 +3,10 @@ package cn.nukkit.nbt.tag;
 import cn.nukkit.nbt.stream.NBTInputStream;
 import cn.nukkit.nbt.stream.NBTOutputStream;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Objects;
 
 public abstract class Tag {
     public static final byte TAG_End = 0;
@@ -46,7 +48,12 @@ public abstract class Tag {
         Tag o = (Tag) obj;
         return getId() == o.getId() && !(name == null && o.name != null || name != null && o.name == null) && !(name != null && !name.equals(o.name));
     }
-
+    
+    @Override
+    public int hashCode() {
+        return Objects.hash(getId(), name);
+    }
+    
     public void print(PrintStream out) {
         print("", out);
     }
@@ -60,7 +67,9 @@ public abstract class Tag {
             out.print("(\"" + name + "\")");
         }
         out.print(": ");
-        out.println(toString());
+        if (getId() != TAG_Compound && getId() != TAG_List) {
+            out.println(parseValue());
+        }
     }
 
     public Tag setName(String name) {
@@ -72,6 +81,7 @@ public abstract class Tag {
         return this;
     }
 
+    @Nonnull
     public String getName() {
         if (name == null) return "";
         return name;

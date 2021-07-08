@@ -4,10 +4,12 @@ import cn.nukkit.Player;
 import cn.nukkit.api.API;
 import cn.nukkit.api.API.Definition;
 import cn.nukkit.api.API.Usage;
+import cn.nukkit.api.PowerNukkitDifference;
 import cn.nukkit.block.Block;
 import cn.nukkit.block.BlockRail;
 import cn.nukkit.block.BlockRailActivator;
 import cn.nukkit.block.BlockRailPowered;
+import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityHuman;
 import cn.nukkit.entity.EntityLiving;
 import cn.nukkit.entity.data.ByteEntityData;
@@ -28,15 +30,13 @@ import cn.nukkit.utils.MinecartType;
 import cn.nukkit.utils.Rail;
 import cn.nukkit.utils.Rail.Orientation;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Objects;
 
 /**
- * Created by: larryTheCoder on 2017/6/26.
- * <p>
- * Nukkit Project,
- * Minecart and Riding Project,
- * Package cn.nukkit.entity.item in project Nukkit.
+ * @author larryTheCoder (Nukkit Project, Minecart and Riding Project)
+ * @since 2017/6/26
  */
 public abstract class EntityMinecartAbstract extends EntityVehicle {
 
@@ -108,6 +108,7 @@ public abstract class EntityMinecartAbstract extends EntityVehicle {
         prepareDataProperty();
     }
 
+    @PowerNukkitDifference(since = "1.3.1.2-PN", info = "Will despawn instantly after being 'killed'")
     @Override
     public boolean onUpdate(int currentTick) {
         if (this.closed) {
@@ -115,12 +116,9 @@ public abstract class EntityMinecartAbstract extends EntityVehicle {
         }
 
         if (!this.isAlive()) {
-            ++this.deadTicks;
-            if (this.deadTicks >= 10) {
-                this.despawnFromAll();
-                this.close();
-            }
-            return this.deadTicks < 10;
+            this.despawnFromAll();
+            this.close();
+            return false;
         }
 
         int tickDiff = currentTick - this.lastUpdate;
@@ -242,8 +240,12 @@ public abstract class EntityMinecartAbstract extends EntityVehicle {
         level.dropItem(this, new ItemMinecart());
     }
 
+    @PowerNukkitDifference(info = "Fixes a dupe issue when attacking too quickly", since = "1.3.1.2-PN")
     @Override
     public void kill() {
+        if (!isAlive()) {
+            return;
+        }
         super.kill();
 
         if (level.getGameRules().getBoolean(GameRule.DO_ENTITY_DROPS)) {
@@ -251,14 +253,13 @@ public abstract class EntityMinecartAbstract extends EntityVehicle {
         }
     }
 
+    @PowerNukkitDifference(info = "Will not make a smoke particle and will do a proper dismount on the entities", since = "1.3.1.2-PN")
     @Override
     public void close() {
         super.close();
 
-        for (cn.nukkit.entity.Entity entity : passengers) {
-            if (entity instanceof Player) {
-                entity.riding = null;
-            }
+        for (Entity passenger : new ArrayList<>(this.passengers)) {
+            dismountEntity(passenger);
         }
     }
 

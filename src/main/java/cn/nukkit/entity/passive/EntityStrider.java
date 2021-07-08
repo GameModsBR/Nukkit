@@ -1,11 +1,14 @@
 package cn.nukkit.entity.passive;
 
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.nbt.tag.CompoundTag;
 
 /**
  * @author Erik Miller | EinBexiii
  */
+@Since("1.3.1.0-PN")
 public class EntityStrider extends EntityAnimal {
 
     public final static int NETWORK_ID = 125;
@@ -22,7 +25,7 @@ public class EntityStrider extends EntityAnimal {
     @Override
     protected void initEntity() {
         super.initEntity();
-        this.setMaxHealth(15);
+        this.setMaxHealth(20);
     }
 
     @Override
@@ -35,8 +38,10 @@ public class EntityStrider extends EntityAnimal {
         return 1.7f;
     }
 
+    @PowerNukkitOnly
+    @Since("1.5.1.0-PN")
     @Override
-    public String getName() {
+    public String getOriginalName() {
         return "Strider";
     }
 }

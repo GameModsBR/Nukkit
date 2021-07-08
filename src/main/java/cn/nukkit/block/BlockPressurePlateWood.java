@@ -1,7 +1,6 @@
 package cn.nukkit.block;
 
 import cn.nukkit.entity.Entity;
-import cn.nukkit.item.Item;
 import cn.nukkit.item.ItemTool;
 import cn.nukkit.math.AxisAlignedBB;
 import cn.nukkit.utils.BlockColor;
@@ -23,7 +22,7 @@ public class BlockPressurePlateWood extends BlockPressurePlateBase {
 
     @Override
     public String getName() {
-        return "Wooden Pressure Plate";
+        return "Oak Pressure Plate";
     }
 
     @Override
@@ -33,7 +32,7 @@ public class BlockPressurePlateWood extends BlockPressurePlateBase {
 
     @Override
     public int getToolType() {
-        return ItemTool.TYPE_AXE;
+         return ItemTool.TYPE_AXE;
     }
 
     @Override
@@ -43,14 +42,7 @@ public class BlockPressurePlateWood extends BlockPressurePlateBase {
 
     @Override
     public double getResistance() {
-        return 2.5D;
-    }
-
-    @Override
-    public Item[] getDrops(Item item) {
-        return new Item[]{
-                toItem()
-        };
+        return 0.5D;
     }
 
     @Override

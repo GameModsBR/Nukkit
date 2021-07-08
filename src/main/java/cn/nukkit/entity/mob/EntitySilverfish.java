@@ -1,5 +1,8 @@
 package cn.nukkit.entity.mob;
 
+import cn.nukkit.Player;
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
 import cn.nukkit.entity.EntityArthropod;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.nbt.tag.CompoundTag;
@@ -20,8 +23,10 @@ public class EntitySilverfish extends EntityMob implements EntityArthropod {
         super(chunk, nbt);
     }
 
+    @PowerNukkitOnly
+    @Since("1.5.1.0-PN")
     @Override
-    public String getName() {
+    public String getOriginalName() {
         return "Silverfish";
     }
 
@@ -39,5 +44,10 @@ public class EntitySilverfish extends EntityMob implements EntityArthropod {
     public void initEntity() {
         super.initEntity();
         this.setMaxHealth(8);
+    }
+
+    @Override
+    public boolean isPreventingSleep(Player player) {
+        return true;
     }
 }

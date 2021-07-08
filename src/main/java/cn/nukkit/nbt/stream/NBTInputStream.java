@@ -10,8 +10,7 @@ import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * @author MagicDroidX (Nukkit Project)
  */
 public class NBTInputStream implements DataInput, AutoCloseable {
     private final DataInputStream stream;
@@ -81,7 +80,11 @@ public class NBTInputStream implements DataInput, AutoCloseable {
 
     @Override
     public int readUnsignedShort() throws IOException {
-        return this.readShort() & 0xFFFF;
+        int s = this.stream.readUnsignedShort();
+        if (endianness == ByteOrder.LITTLE_ENDIAN) {
+            s = Integer.reverseBytes(s) >> 16;
+        }
+        return s;
     }
 
     @Override
@@ -145,7 +148,7 @@ public class NBTInputStream implements DataInput, AutoCloseable {
     public String readUTF() throws IOException {
         int length = network ? (int) VarInt.readUnsignedVarInt(stream) : this.readUnsignedShort();
         byte[] bytes = new byte[length];
-        this.stream.read(bytes);
+        this.stream.readFully(bytes);
         return new String(bytes, StandardCharsets.UTF_8);
     }
 

@@ -1,10 +1,11 @@
 package cn.nukkit.level.biome.impl.taiga;
 
+import cn.nukkit.api.RemovedFromNewRakNet;
+import cn.nukkit.api.Since;
 import cn.nukkit.level.generator.populator.impl.WaterIcePopulator;
 
 /**
- * author: DaPorkchop_
- * Nukkit Project
+ * @author DaPorkchop_ (Nukkit Project)
  */
 public class ColdTaigaBiome extends TaigaBiome {
     public ColdTaigaBiome() {
@@ -22,9 +23,14 @@ public class ColdTaigaBiome extends TaigaBiome {
         return "Cold Taiga";
     }
 
+    @Since("1.4.0.0-PN")
     @Override
-    public int getCoverId(int x, int z) {
-        return SNOW_LAYER << 4;
+    @RemovedFromNewRakNet
+    public int getCoverBlock() {
+        if (useNewRakNetCover()) {
+            return getCoverId(0,0) >> 4;
+        }
+        return SNOW_LAYER;
     }
 
     @Override

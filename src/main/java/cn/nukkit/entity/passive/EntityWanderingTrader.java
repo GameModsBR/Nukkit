@@ -1,5 +1,7 @@
 package cn.nukkit.entity.passive;
 
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
 import cn.nukkit.entity.EntityCreature;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.nbt.tag.CompoundTag;
@@ -19,11 +21,13 @@ public class EntityWanderingTrader extends EntityCreature implements EntityNPC {
 
     @Override
     public float getHeight() {
-        return 1.8f;
+        return 1.9f;
     }
-
+    
+    @PowerNukkitOnly
+    @Since("1.5.1.0-PN")
     @Override
-    public String getName() {
+    public String getOriginalName() {
         return "Wandering Trader";
     }
 

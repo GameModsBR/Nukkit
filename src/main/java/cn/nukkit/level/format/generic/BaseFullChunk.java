@@ -1,13 +1,19 @@
 package cn.nukkit.level.format.generic;
 
 import cn.nukkit.Player;
+import cn.nukkit.api.DeprecationDetails;
+import cn.nukkit.api.PowerNukkitDifference;
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
 import cn.nukkit.block.Block;
 import cn.nukkit.blockentity.BlockEntity;
+import cn.nukkit.blockstate.BlockState;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.level.ChunkManager;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.level.format.LevelProvider;
+import cn.nukkit.math.BlockVector3;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.ListTag;
 import cn.nukkit.nbt.tag.NumberTag;
@@ -15,15 +21,17 @@ import cn.nukkit.network.protocol.BatchPacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiPredicate;
+import java.util.stream.Stream;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * @author MagicDroidX (Nukkit Project)
  */
 public abstract class BaseFullChunk implements FullChunk, ChunkManager {
     protected Map<Long, Entity> entities;
@@ -116,6 +124,12 @@ public abstract class BaseFullChunk implements FullChunk, ChunkManager {
         }
         return chunkPacket;
     }
+    
+    @PowerNukkitOnly("Needed for level backward compatibility")
+    @Since("1.3.0.0-PN")
+    public void backwardCompatibilityUpdate(Level level) {
+        // Does nothing here
+    }
 
     public void initChunk() {
         if (this.getProvider() != null && !this.isInit) {
@@ -162,8 +176,10 @@ public abstract class BaseFullChunk implements FullChunk, ChunkManager {
                 this.getProvider().getLevel().timings.syncChunkLoadBlockEntitiesTimer.stopTiming();
                 this.NBTtiles = null;
             }
-
-            this.setChanged(changed);
+            
+            if (changed) {
+                this.setChanged();
+            }
 
             this.isInit = true;
         }
@@ -218,8 +234,8 @@ public abstract class BaseFullChunk implements FullChunk, ChunkManager {
 
     @Override
     public void setBiomeId(int x, int z, byte biomeId) {
-        this.setChanged();
         this.biomes[(x << 4) | z] = biomeId;
+        this.setChanged();
     }
 
     @Override
@@ -236,9 +252,23 @@ public abstract class BaseFullChunk implements FullChunk, ChunkManager {
     public void recalculateHeightMap() {
         for (int z = 0; z < 16; ++z) {
             for (int x = 0; x < 16; ++x) {
-                this.setHeightMap(x, z, this.getHighestBlockAt(x, z, false));
+                recalculateHeightMapColumn(x, z);
             }
         }
+    }
+
+    @Override
+    public int recalculateHeightMapColumn(int x, int z) {
+        int max = getHighestBlockAt(x, z, false);
+        int y;
+        for (y = max; y >= 0; --y) {
+            if (Block.lightFilter[getBlockIdAt(x, y, z)] > 1 || Block.diffusesSkyLight[getBlockIdAt(x, y, z)]) {
+                break;
+            }
+        }
+
+        setHeightMap(x, z, y + 1);
+        return y + 1;
     }
 
     @Override
@@ -267,19 +297,54 @@ public abstract class BaseFullChunk implements FullChunk, ChunkManager {
 
     @Override
     public void populateSkyLight() {
+        // basic light calculation
         for (int z = 0; z < 16; ++z) {
-            for (int x = 0; x < 16; ++x) {
-                int top = this.getHeightMap(x, z);
-                for (int y = 255; y > top; --y) {
+            for (int x = 0; x < 16; ++x) { // iterating over all columns in chunk
+                int top = this.getHeightMap(x, z) - 1; // top-most block
+
+                int y;
+
+                for (y = 255; y > top; --y) {
+                    // all the blocks above & including the top-most block in a column are exposed to sun and
+                    // thus have a skylight value of 15
                     this.setBlockSkyLight(x, y, z, 15);
                 }
-                for (int y = top; y >= 0; --y) {
-                    if (Block.solid[this.getBlockId(x, y, z)]) {
-                        break;
+
+                int nextLight = 15; // light value that will be applied starting with the next block
+                int nextDecrease = 0; // decrease that that will be applied starting with the next block
+
+                // TODO: remove nextLight & nextDecrease, use only light & decrease variables
+                for (y = top; y >= 0; --y) { // going under the top-most block
+                    nextLight -= nextDecrease;
+                    int light = nextLight; // this light value will be applied for this block. The following checks are all about the next blocks
+
+                    if (light < 0) {
+                        light = 0;
                     }
-                    this.setBlockSkyLight(x, y, z, 15);
+
+                    this.setBlockSkyLight(x, y, z, light);
+
+                    if (light == 0) { // skipping block checks, because everything under a block that has a skylight value
+                                      // of 0 also has a skylight value of 0
+                        continue;
+                    }
+
+                    // START of checks for the next block
+                    int id = this.getBlockId(x, y, z);
+
+                    if (!Block.transparent[id]) { // if we encounter an opaque block, all the blocks under it will
+                                           // have a skylight value of 0 (the block itself has a value of 15, if it's a top-most block)
+                        nextLight = 0;
+                    } else if (Block.diffusesSkyLight[id]) {
+                        nextDecrease += 1; // skylight value decreases by one for each block under a block
+                                           // that diffuses skylight. The block itself has a value of 15 (if it's a top-most block)
+                    } else {
+                        nextDecrease -= Block.lightFilter[id]; // blocks under a light filtering block will have a skylight value
+                                                            // decreased by the lightFilter value of that block. The block itself
+                                                            // has a value of 15 (if it's a top-most block)
+                    }
+                    // END of checks for the next block
                 }
-                this.setHeightMap(x, z, this.getHighestBlockAt(x, z, false));
             }
         }
     }
@@ -434,16 +499,6 @@ public abstract class BaseFullChunk implements FullChunk, ChunkManager {
     }
 
     @Override
-    public byte[] getBlockIdArray() {
-        return this.blocks;
-    }
-
-    @Override
-    public byte[] getBlockDataArray() {
-        return this.data;
-    }
-
-    @Override
     public byte[] getBlockSkyLightArray() {
         return this.skyLight;
     }
@@ -507,48 +562,99 @@ public abstract class BaseFullChunk implements FullChunk, ChunkManager {
 
     }
 
-
     @Override
     public int getBlockIdAt(int x, int y, int z) {
+        return getBlockIdAt(x, y, z, 0);
+    }
+
+    @Override
+    public int getBlockIdAt(int x, int y, int z, int layer) {
         if (x >> 4 == getX() && z >> 4 == getZ()) {
-            return getBlockId(x & 15, y, z & 15);
+            return getBlockId(x & 15, y, z & 15, layer);
         }
         return 0;
     }
 
+    @Deprecated
+    @DeprecationDetails(reason = "The meta is limited to 32 bits", since = "1.4.0.0-PN")
     @Override
     public void setBlockFullIdAt(int x, int y, int z, int fullId) {
+        setFullBlockId(x, y, z, 0, fullId);
+    }
+
+    @Deprecated
+    @DeprecationDetails(reason = "The meta is limited to 32 bits", since = "1.4.0.0-PN")
+    @Override
+    public void setBlockFullIdAt(int x, int y, int z, int layer, int fullId) {
         if (x >> 4 == getX() && z >> 4 == getZ()) {
-            setFullBlockId(x & 15, y, z & 15, fullId);
+            setFullBlockId(x & 15, y, z & 15, layer, fullId);
         }
+    }
+
+    @Override
+    public boolean setBlockAtLayer(int x, int y, int z, int layer, int blockId) {
+        return setBlockStateAtLayer(x, y, z, layer, BlockState.of(blockId));
+    }
+
+    @Deprecated
+    @DeprecationDetails(reason = "The meta is limited to 32 bits", since = "1.4.0.0-PN")
+    @Override
+    public boolean setBlockAtLayer(int x, int y, int z, int layer, int blockId, int meta) {
+        return setBlockStateAtLayer(x, y, z, layer, BlockState.of(blockId, meta));
     }
 
     @Override
     public void setBlockIdAt(int x, int y, int z, int id) {
+        setBlockIdAt(x, y, z, 0, id);
+    }
+
+    @Override
+    public void setBlockIdAt(int x, int y, int z, int layer, int id) {
         if (x >> 4 == getX() && z >> 4 == getZ()) {
-            setBlockId(x & 15, y, z & 15, id);
+            setBlockId(x & 15, y, z & 15, layer, id);
         }
     }
 
+    @Deprecated
+    @DeprecationDetails(reason = "The meta is limited to 32 bits", since = "1.4.0.0-PN")
     @Override
     public void setBlockAt(int x, int y, int z, int id, int data) {
         if (x >> 4 == getX() && z >> 4 == getZ()) {
-            setBlock(x & 15, y, z & 15, id, data);
+            setBlockState(x & 15, y, z & 15, BlockState.of(id, data));
         }
     }
 
+    @Deprecated
+    @DeprecationDetails(reason = "The meta is limited to 32 bits", since = "1.4.0.0-PN")
     @Override
     public int getBlockDataAt(int x, int y, int z) {
+        return getBlockDataAt(x, y, z, 0);
+    }
+
+    @Deprecated
+    @DeprecationDetails(reason = "The meta is limited to 32 bits", since = "1.4.0.0-PN")
+    @Override
+    @PowerNukkitDifference(info = "Was returning the block id instead of the data", since = "1.4.0.0-PN")
+    public int getBlockDataAt(int x, int y, int z, int layer) {
         if (x >> 4 == getX() && z >> 4 == getZ()) {
-            return getBlockIdAt(x & 15, y, z & 15);
+            return getBlockData(x & 15, y, z & 15, layer);
         }
         return 0;
     }
 
+    @Deprecated
+    @DeprecationDetails(reason = "The meta is limited to 32 bits", since = "1.4.0.0-PN")
     @Override
     public void setBlockDataAt(int x, int y, int z, int data) {
+        setBlockDataAt(x, y, z, 0, data);
+    }
+
+    @Deprecated
+    @DeprecationDetails(reason = "The meta is limited to 32 bits", since = "1.4.0.0-PN")
+    @Override
+    public void setBlockDataAt(int x, int y, int z, int layer, int data) {
         if (x >> 4 == getX() && z >> 4 == getZ()) {
-            setBlockData(x & 15, y, z & 15, data);
+            setBlockData(x & 15, y, z & 15, layer, data);
         }
     }
 
@@ -580,5 +686,36 @@ public abstract class BaseFullChunk implements FullChunk, ChunkManager {
             return true;
         }
         return false;
+    }
+
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    @Nonnull
+    public Stream<Block> scanBlocks(BlockVector3 min, BlockVector3 max, BiPredicate<BlockVector3, BlockState> condition) {
+        int offsetX = getX() << 4;
+        int offsetZ = getZ() << 4;
+        List<Block> results = new ArrayList<>();
+        
+        BlockVector3 current = new BlockVector3();
+
+        int minX = Math.max(0, min.x - offsetX);
+        int minY = Math.max(0, min.y);
+        int minZ = Math.max(0, min.z - offsetZ);
+        
+        for (int x = Math.min(max.x - offsetX, 15); x >= minX; x--) {
+            current.x = offsetX + x;
+            for (int z = Math.min(max.z - offsetZ, 15); z >= minZ; z--) {
+                current.z = offsetZ + z;
+                for (int y = Math.min(max.y, 255); y >= minY; y--) {
+                    current.y = y;
+                    BlockState state = getBlockState(x, y, z);
+                    if (condition.test(current, state)) {
+                        results.add(state.getBlockRepairing(getProvider().getLevel(), current, 0));
+                    }
+                }
+            }
+        }
+        
+        return results.stream();
     }
 }

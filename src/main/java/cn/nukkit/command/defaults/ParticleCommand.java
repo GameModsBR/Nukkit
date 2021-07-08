@@ -16,8 +16,8 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Created on 2015/11/12 by xtypr.
- * Package cn.nukkit.command.defaults in project Nukkit .
+ * @author xtypr
+ * @since 2015/11/12
  */
 public class ParticleCommand extends VanillaCommand {
     private static final String[] ENUM_VALUES = new String[]{"explode", "hugeexplosion", "hugeexplosionseed", "bubble"
@@ -62,9 +62,9 @@ public class ParticleCommand extends VanillaCommand {
         double z;
 
         try {
-            x = getDouble(args[1], defaultPosition.getX());
-            y = getDouble(args[2], defaultPosition.getY());
-            z = getDouble(args[3], defaultPosition.getZ());
+            x = parseTilde(args[1], defaultPosition.getX());
+            y = parseTilde(args[2], defaultPosition.getY());
+            z = parseTilde(args[3], defaultPosition.getZ());
         } catch (Exception e) {
             return false;
         }
@@ -201,15 +201,5 @@ public class ParticleCommand extends VanillaCommand {
 
         return null;
     }
-
-    private static double getDouble(String arg, double defaultValue) throws Exception {
-        if (arg.startsWith("~")) {
-            String relativePos = arg.substring(1);
-            if (relativePos.isEmpty()) {
-                return defaultValue;
-            }
-            return defaultValue + Double.parseDouble(relativePos);
-        }
-        return Double.parseDouble(arg);
-    }
+    
 }

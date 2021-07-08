@@ -3,8 +3,7 @@ package cn.nukkit.item.enchantment.damage;
 import cn.nukkit.entity.Entity;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * @author MagicDroidX (Nukkit Project)
  */
 public class EnchantmentDamageAll extends EnchantmentDamage {
 
@@ -33,6 +32,6 @@ public class EnchantmentDamageAll extends EnchantmentDamage {
             return 0;
         }
 
-        return 0.5 + getLevel() * 0.5;
+        return getLevel() * 1.25;
     }
 }

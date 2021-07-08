@@ -5,8 +5,7 @@ import cn.nukkit.event.entity.EntityDamageEvent.DamageCause;
 import cn.nukkit.item.enchantment.Enchantment;
 
 /**
- * author: MagicDroidX
- * Nukkit Project
+ * @author MagicDroidX (Nukkit Project)
  */
 public class EnchantmentProtectionAll extends EnchantmentProtection {
 
@@ -21,7 +20,7 @@ public class EnchantmentProtectionAll extends EnchantmentProtection {
 
     @Override
     public int getMaxEnchantAbility(int level) {
-        return this.getMinEnchantAbility(level) + 20;
+        return this.getMinEnchantAbility(level) + 11;
     }
 
     @Override

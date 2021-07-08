@@ -1,5 +1,8 @@
 package cn.nukkit.entity.mob;
 
+import cn.nukkit.Player;
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
 import cn.nukkit.entity.EntitySmite;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.format.FullChunk;
@@ -34,16 +37,28 @@ public class EntityStray extends EntityMob implements EntitySmite {
 
     @Override
     public float getHeight() {
-        return 1.99f;
+        return 1.9f;
     }
 
+    @PowerNukkitOnly
+    @Since("1.5.1.0-PN")
     @Override
-    public String getName() {
+    public String getOriginalName() {
         return "Stray";
     }
 
     @Override
     public Item[] getDrops() {
         return new Item[]{Item.get(Item.BONE, Item.ARROW)};
+    }
+
+    @Override
+    public boolean isUndead() {
+        return true;
+    }
+
+    @Override
+    public boolean isPreventingSleep(Player player) {
+        return true;
     }
 }

@@ -16,8 +16,8 @@ import cn.nukkit.utils.TextFormat;
 import java.util.StringJoiner;
 
 /**
- * Created on 2015/12/08 by Pub4Game.
- * Package cn.nukkit.command.defaults in project Nukkit .
+ * @author Pub4Game
+ * @since 2015/12/08
  */
 public class KillCommand extends VanillaCommand {
 
@@ -60,7 +60,7 @@ public class KillCommand extends VanillaCommand {
                 for (Level level : Server.getInstance().getLevels().values()) {
                     for (Entity entity : level.getEntities()) {
                         if (!(entity instanceof Player)) {
-                            joiner.add(entity.getName());
+                            joiner.add(entity.getVisibleName());
                             entity.close();
                         }
                     }

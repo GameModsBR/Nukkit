@@ -1,11 +1,13 @@
 package cn.nukkit.entity.passive;
 
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.nbt.tag.CompoundTag;
 
 /**
- * Author: BeYkeRYkt Nukkit Project
+ * @author BeYkeRYkt (Nukkit Project)
  */
 public class EntityMooshroom extends EntityAnimal {
 
@@ -26,13 +28,15 @@ public class EntityMooshroom extends EntityAnimal {
     @Override
     public float getHeight() {
         if (isBaby()) {
-            return 0.7f;
+            return 0.65f;
         }
-        return 1.4f;
+        return 1.3f;
     }
 
+    @PowerNukkitOnly
+    @Since("1.5.1.0-PN")
     @Override
-    public String getName() {
+    public String getOriginalName() {
         return "Mooshroom";
     }
 
