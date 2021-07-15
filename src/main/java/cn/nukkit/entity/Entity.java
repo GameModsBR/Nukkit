@@ -36,6 +36,7 @@ import cn.nukkit.plugin.Plugin;
 import cn.nukkit.potion.Effect;
 import cn.nukkit.scheduler.Task;
 import cn.nukkit.utils.ChunkException;
+import cn.nukkit.utils.Identifier;
 import cn.nukkit.utils.TextFormat;
 import cn.nukkit.utils.Utils;
 import co.aikar.timings.Timing;
@@ -447,6 +448,10 @@ public abstract class Entity extends Location implements Metadatable {
     @Since("1.4.0.0-PN")
     public boolean noClip = false;
 
+    @PowerNukkitOnly
+    @Since("FUTURE")
+    private Identifier identifier;
+
     public float getHeight() {
         return 0;
     }
@@ -557,7 +562,20 @@ public abstract class Entity extends Location implements Metadatable {
         this.chunk = chunk;
         this.setLevel(chunk.getProvider().getLevel());
         this.server = chunk.getProvider().getLevel().getServer();
-
+        
+        if (!this.namedTag.contains("identifier")) {
+            if (this.getIdentifier() != null) {
+                this.identifier = this.getIdentifier();
+            } else if (AddEntityPacket.LEGACY_IDS.get(NETWORK_ID) != null) {
+                this.namedTag.putString("identifier", AddEntityPacket.LEGACY_IDS.get(NETWORK_ID));
+                this.identifier = Identifier.fromFullString(this.namedTag.getString("identifier"));
+            } else {
+                this.identifier = null;
+            }
+        } else {
+            this.identifier = Identifier.fromFullString(this.namedTag.getString("identifier"));
+        }
+        
         this.boundingBox = new SimpleAxisAlignedBB(0, 0, 0, 0, 0, 0);
 
         ListTag<DoubleTag> posList = this.namedTag.getList("Pos", DoubleTag.class);
@@ -1091,7 +1109,11 @@ public abstract class Entity extends Location implements Metadatable {
                 this.namedTag.remove("CustomNameAlwaysVisible");
             }
         }
-
+        
+        if (this.identifier != null) {
+            this.namedTag.putString("identifier", this.identifier.getFullString());
+        }
+        
         this.namedTag.putList(new ListTag<DoubleTag>("Pos")
                 .add(new DoubleTag("0", this.x))
                 .add(new DoubleTag("1", this.y))
@@ -1198,6 +1220,9 @@ public abstract class Entity extends Location implements Metadatable {
         addEntity.type = this.getNetworkId();
         addEntity.entityUniqueId = this.getId();
         addEntity.entityRuntimeId = this.getId();
+        if (this.identifier != null) {
+            addEntity.id = this.identifier.getFullString();
+        }
         addEntity.yaw = (float) this.yaw;
         addEntity.headYaw = (float) this.yaw;
         addEntity.pitch = (float) this.pitch;
@@ -2843,7 +2868,24 @@ public abstract class Entity extends Location implements Metadatable {
     public boolean isPreventingSleep(Player player) {
         return false;
     }
-
+    
+    @PowerNukkitOnly
+    @Since("FUTURE")
+    public Identifier getIdentifier() {
+        return identifier;
+    }
+    
+    /**
+     * You can use to add a custom entity without registry things.
+     * This is a dangerous method, please use this if you know what you are doing.
+     * @param An entity identifier. For example, minecraft:chicken.
+     */
+    @PowerNukkitOnly
+    @Since("FUTURE")
+    public void setIdentifier(Identifier identifier) {
+        this.identifier = identifier;
+    }
+    
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {
