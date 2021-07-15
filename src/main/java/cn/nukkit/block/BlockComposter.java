@@ -205,7 +205,7 @@ public class BlockComposter extends BlockSolidMeta implements ItemID {
             registerItem(chance, minecraftItemID);
         }
     }
-    
+
     @PowerNukkitOnly
     public static void registerItem(int chance, int itemId) {
         registerItem(chance, itemId, 0);
@@ -267,8 +267,8 @@ public class BlockComposter extends BlockSolidMeta implements ItemID {
     }
 
     private static void registerDefaults() {
-        registerItems(30, KELP, BEETROOT_SEEDS, DRIED_KELP, MELON_SEEDS, PUMPKIN_SEEDS, SWEET_BERRIES, 
-                                 WHEAT_SEEDS, MOSS_CARPET, HANGING_ROOTS, SMALL_DRIPLEAF_BLOCK);
+        registerItems(30, KELP, BEETROOT_SEEDS, DRIED_KELP, MELON_SEEDS, PUMPKIN_SEEDS, SWEET_BERRIES,
+                WHEAT_SEEDS, MOSS_CARPET, HANGING_ROOTS, SMALL_DRIPLEAF_BLOCK);
         registerItems(30, MinecraftItemID.GLOW_BERRIES);
         registerItems(50, MELON_SLICE, SUGAR_CANE, NETHER_SPROUTS, GLOW_LICHEN);
         registerItems(65, APPLE, BEETROOT, CARROT, COCOA, POTATO, WHEAT);
@@ -276,12 +276,12 @@ public class BlockComposter extends BlockSolidMeta implements ItemID {
         registerItems(100, CAKE, PUMPKIN_PIE);
 
         registerBlocks(30, BLOCK_KELP, LEAVES, LEAVES2, SAPLING, SEAGRASS, SWEET_BERRY_BUSH);
-        registerBlocks(50, GRASS, CACTUS, DRIED_KELP_BLOCK, VINE, NETHER_SPROUTS_BLOCK, 
-                                  TWISTING_VINES, WEEPING_VINES);
+        registerBlocks(50, GRASS, CACTUS, DRIED_KELP_BLOCK, VINE, NETHER_SPROUTS_BLOCK,
+                TWISTING_VINES, WEEPING_VINES, GLOW_LICHEN);
         registerBlocks(65, DANDELION, RED_FLOWER, DOUBLE_PLANT, WITHER_ROSE, WATERLILY, MELON_BLOCK,
-                                  PUMPKIN, CARVED_PUMPKIN, SEA_PICKLE, BROWN_MUSHROOM, RED_MUSHROOM, 
-                                  WARPED_ROOTS, CRIMSON_ROOTS, SHROOMLIGHT, AZALEA, BIG_DRIPLEAF, MOSS_BLOCK,
-                                  SPORE_BLOSSOM);
+                PUMPKIN, CARVED_PUMPKIN, SEA_PICKLE, BROWN_MUSHROOM, RED_MUSHROOM,
+                WARPED_ROOTS, CRIMSON_ROOTS, SHROOMLIGHT, AZALEA, BIG_DRIPLEAF, MOSS_BLOCK,
+                SPORE_BLOSSOM);
         registerBlocks(85, HAY_BALE, BROWN_MUSHROOM_BLOCK, RED_MUSHROOM_BLOCK, MUSHROOM_STEW);
         registerBlocks(100, CAKE_BLOCK);
 

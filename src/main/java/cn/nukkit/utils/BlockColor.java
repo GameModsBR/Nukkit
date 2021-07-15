@@ -73,6 +73,7 @@ public class BlockColor  {
     public static final BlockColor RED_TERRACOTA_BLOCK_COLOR = new BlockColor(0x8e, 0x3c, 0x2e);
     public static final BlockColor BLACK_TERRACOTA_BLOCK_COLOR = new BlockColor(0x25, 0x16, 0x10);
 
+
     @PowerNukkitOnly
     @Since("1.4.0.0-PN")
     public static final BlockColor CRIMSON_NYLIUM_BLOCK_COLOR = new BlockColor(0xBD, 0x30, 0x31);
@@ -84,6 +85,9 @@ public class BlockColor  {
     @PowerNukkitOnly
     @Since("1.4.0.0-PN")
     public static final BlockColor CRIMSON_HYPHAE_BLOCK_COLOR = new BlockColor(0x5C, 0x19, 0x1D);
+    
+    
+    
     
     @PowerNukkitOnly
     @Since("1.4.0.0-PN")
@@ -105,6 +109,9 @@ public class BlockColor  {
     @Since("FUTURE")
     public static final BlockColor DEEPSLATE_GRAY = new BlockColor(0x64, 0x64, 0x64);
 
+    @PowerNukkitOnly
+    @Since("FUTURE")
+    public static final BlockColor LICHEN_GREEN = new BlockColor(0x7F, 0xA7, 0x96);
 
     private int red;
     private int green;
