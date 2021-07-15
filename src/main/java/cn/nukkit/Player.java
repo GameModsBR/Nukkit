@@ -296,7 +296,11 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
 
     private float soulSpeedMultiplier = 1;
     private boolean wasInSoulSandCompatible;
-
+    
+    @PowerNukkitOnly
+    @Since("FUTURE")
+    private boolean isIgnoringMobEquipmentPacket;
+    
     @PowerNukkitOnly
     @Since("1.4.0.0-PN")
     public float getSoulSpeedMultiplier() {
@@ -2663,13 +2667,18 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                     }
 
                     Item item = inv.getItem(mobEquipmentPacket.hotbarSlot);
-
-                    if (!item.equals(mobEquipmentPacket.item)) {
-                        log.debug("Tried to equip {} but have {} in target slot", mobEquipmentPacket.item, item);
-                        inv.sendContents(this);
-                        return;
+                    
+                    if (!this.isIgnoringMobEquipmentPacket()) {
+                        if (!item.equals(mobEquipmentPacket.item)) {
+                            log.debug("Tried to equip {} but have {} in target slot", mobEquipmentPacket.item, item);
+                            inv.sendContents(this);
+                            return;
+                        }
+                    } else {
+                        log.debug("MobEquipmentPacket ignored");
+                        this.setIgnoringMobEquipmentPacket(false);
                     }
-
+                    
                     if (inv instanceof PlayerInventory) {
                         ((PlayerInventory) inv).equipItem(mobEquipmentPacket.hotbarSlot);
                     }
@@ -3968,17 +3977,19 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                         return;
                     }
 
-                    if (bookEditPacket.text == null || bookEditPacket.text.length() > 256) {
-                        return;
-                    }
-
                     Item newBook = oldBook.clone();
                     boolean success;
                     switch (bookEditPacket.action) {
                         case REPLACE_PAGE:
+                            if (bookEditPacket.text == null || bookEditPacket.text.length() > 256) {
+                                return;
+                            }
                             success = ((ItemBookAndQuill) newBook).setPageText(bookEditPacket.pageNumber, bookEditPacket.text);
                             break;
                         case ADD_PAGE:
+                            if (bookEditPacket.text == null || bookEditPacket.text.length() > 256) {
+                                return;
+                            }
                             success = ((ItemBookAndQuill) newBook).insertPage(bookEditPacket.pageNumber, bookEditPacket.text);
                             break;
                         case DELETE_PAGE:
@@ -3999,6 +4010,10 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
                         PlayerEditBookEvent editBookEvent = new PlayerEditBookEvent(this, oldBook, newBook, bookEditPacket.action);
                         this.server.getPluginManager().callEvent(editBookEvent);
                         if (!editBookEvent.isCancelled()) {
+                            // HACK: When the client is survival, it sends MobEquipmentPacket when it edit a book. Then, when the server handle MobEquipmentPacket, the item does not same as before so it reverts. Ignore it to solve it.
+                            if (!this.isCreative() && bookEditPacket.action == BookEditPacket.Action.SIGN_BOOK) {
+                                this.setIgnoringMobEquipmentPacket(true);
+                            }
                             this.inventory.setItem(bookEditPacket.inventorySlot, editBookEvent.getNewBook());
                         }
                     }
@@ -6104,5 +6119,17 @@ public class Player extends EntityHuman implements CommandSender, InventoryHolde
         }
         
         return true;
+    }
+    
+    @PowerNukkitOnly
+    @Since("FUTURE")
+    public boolean isIgnoringMobEquipmentPacket() {
+        return this.isIgnoringMobEquipmentPacket;
+    }
+    
+    @PowerNukkitOnly
+    @Since("FUTURE")
+    public void setIgnoringMobEquipmentPacket(boolean isIgnoringMobEquipmentPacket) {
+        this.isIgnoringMobEquipmentPacket = isIgnoringMobEquipmentPacket;
     }
 }
