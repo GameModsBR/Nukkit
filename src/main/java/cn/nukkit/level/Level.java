@@ -73,6 +73,7 @@ import java.io.File;
 import java.lang.ref.SoftReference;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -302,7 +303,15 @@ public class Level implements ChunkManager, Metadatable {
     private int dimension;
 
     public GameRules gameRules;
-
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    private long lastEntityUniqueId = 0;
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public static AtomicLong entityUniqueIdGenerator;
+    
     public Level(Server server, String name, String path, Class<? extends LevelProvider> provider) {
         this(server, name, path,
                 ()-> {
@@ -378,6 +387,10 @@ public class Level implements ChunkManager, Metadatable {
         this.tickRate = 1;
 
         this.skyLightSubtracted = this.calculateSkylightSubtracted(1);
+        
+        this.lastEntityUniqueId = levelProvider.getLastEntityUniqueId();
+        
+        this.entityUniqueIdGenerator = new AtomicLong(this.lastEntityUniqueId);
     }
 
     public static long chunkHash(int x, int z) {
@@ -1321,6 +1334,7 @@ public class Level implements ChunkManager, Metadatable {
         levelProvider.setThunderTime(this.thunderTime);
         levelProvider.setCurrentTick(this.levelCurrentTick);
         levelProvider.setGameRules(this.gameRules);
+        levelProvider.setLastEntityUniqueId(this.lastEntityUniqueId);
         this.saveChunks();
         if (levelProvider instanceof BaseLevelProvider) {
             levelProvider.saveLevelData();
@@ -2599,7 +2613,7 @@ public class Level implements ChunkManager, Metadatable {
     }
 
     public Entity getEntity(long entityId) {
-        return this.entities.containsKey(entityId) ? this.entities.get(entityId) : null;
+        return (this.entities.containsKey(entityId) || entityId != -1L) ? this.entities.get(entityId) : null;
     }
 
     public Entity[] getEntities() {
@@ -4275,4 +4289,33 @@ public class Level implements ChunkManager, Metadatable {
 //
 //        return sorted;
 //    }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public long getLastEntityUniqueId() {
+        return this.lastEntityUniqueId;
+    }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public void setLastEntityUniqueId(long lastEntityUniqueId) {
+        this.lastEntityUniqueId = lastEntityUniqueId;
+    }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public long generateEntityUniqueId() {
+        long tempId = this.entityUniqueIdGenerator.incrementAndGet();
+        while (isAllocatedEntityUniqueId(tempId) || tempId == -1L) {
+            tempId = this.entityUniqueIdGenerator.incrementAndGet();
+        }
+        
+        return tempId;
+    }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public boolean isAllocatedEntityUniqueId(long entityUniqueId) {
+        return getEntity(entityUniqueId) != null || entityUniqueId == -1L;
+    }
 }

@@ -28,6 +28,7 @@ import java.io.*;
 import java.nio.ByteOrder;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -50,7 +51,11 @@ public abstract class BaseLevelProvider implements LevelProvider {
     protected final Long2ObjectMap<BaseFullChunk> chunks = new Long2ObjectOpenHashMap<>();
 
     private final AtomicReference<BaseFullChunk> lastChunk = new AtomicReference<>();
-
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    private long lastEntityUniqueId;
+    
     @PowerNukkitDifference(since = "1.4.0.0-PN", info = "Fixed resource leak")
     public BaseLevelProvider(Level level, String path) throws IOException {
         this.level = level;
@@ -105,6 +110,12 @@ public abstract class BaseLevelProvider implements LevelProvider {
         this.levelData.putList(new ListTag<>("ServerBrand").add(new StringTag("", Nukkit.CODENAME)));
 
         this.spawn = new Vector3(this.levelData.getInt("SpawnX"), this.levelData.getInt("SpawnY"), this.levelData.getInt("SpawnZ"));
+        
+        if (this.levelData.contains("LastEntityUniqueId")) {
+            this.lastEntityUniqueId = this.levelData.getLong("LastEntityUniqueId");
+        } else {
+            this.lastEntityUniqueId = ThreadLocalRandom.current().nextLong();
+        }
     }
 
     @PowerNukkitOnly
@@ -499,5 +510,20 @@ public abstract class BaseLevelProvider implements LevelProvider {
     public boolean isChunkGenerated(int chunkX, int chunkZ) {
         BaseRegionLoader region = this.getRegion(chunkX >> 5, chunkZ >> 5);
         return region != null && region.chunkExists(chunkX - region.getX() * 32, chunkZ - region.getZ() * 32) && this.getChunk(chunkX - region.getX() * 32, chunkZ - region.getZ() * 32, true).isGenerated();
+    }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    @Override
+    public long getLastEntityUniqueId() {
+        return lastEntityUniqueId;
+    }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    @Override
+    public void setLastEntityUniqueId(long lastEntityUniqueId) {
+        this.levelData.putLong("LastEntityUniqueId", lastEntityUniqueId);
+        this.lastEntityUniqueId = lastEntityUniqueId;
     }
 }

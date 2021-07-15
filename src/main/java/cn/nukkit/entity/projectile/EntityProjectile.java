@@ -6,6 +6,7 @@ import cn.nukkit.Player;
 import cn.nukkit.block.Block;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityLiving;
+import cn.nukkit.entity.EntityOwnableNew;
 import cn.nukkit.entity.data.LongEntityData;
 import cn.nukkit.entity.item.EntityEndCrystal;
 import cn.nukkit.event.block.BellRingEvent;
@@ -26,7 +27,7 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * @author MagicDroidX (Nukkit Project)
  */
-public abstract class EntityProjectile extends Entity {
+public abstract class EntityProjectile extends Entity implements EntityOwnableNew {
 
     public static final int DATA_SHOOTER_ID = 17;
 
@@ -35,6 +36,10 @@ public abstract class EntityProjectile extends Entity {
     @PowerNukkitOnly
     @Since("1.4.0.0-PN")
     public boolean hasAge = true;
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public long ownerId = -1L;
     
     protected double getDamage() {
         return namedTag.contains("damage") ? namedTag.getDouble("damage") : getBaseDamage();
@@ -56,8 +61,10 @@ public abstract class EntityProjectile extends Entity {
 
     public EntityProjectile(FullChunk chunk, CompoundTag nbt, Entity shootingEntity) {
         super(chunk, nbt);
+        
         this.shootingEntity = shootingEntity;
         if (shootingEntity != null) {
+            this.ownerId = shootingEntity.getId();
             this.setDataProperty(new LongEntityData(DATA_SHOOTER_ID, shootingEntity.getId()));
         }
     }
@@ -125,6 +132,10 @@ public abstract class EntityProjectile extends Entity {
         if (this.namedTag.contains("Age") && this.hasAge) {
             this.age = this.namedTag.getShort("Age");
         }
+        if (this.namedTag.contains("OwnerID")) {
+            this.ownerId = this.namedTag.getLong("OwnerID");
+        }
+        this.shootingEntity = this.getLevel().getEntity(this.ownerId);
     }
 
     @Override
@@ -135,9 +146,11 @@ public abstract class EntityProjectile extends Entity {
     @Override
     public void saveNBT() {
         super.saveNBT();
+        
         if (this.hasAge) {
             this.namedTag.putShort("Age", this.age);
         }
+        this.namedTag.putLong("OwnerID", this.ownerId);
     }
 
     @PowerNukkitOnly
@@ -288,5 +301,40 @@ public abstract class EntityProjectile extends Entity {
     @Since("1.4.0.0-PN")
     public void setAge(boolean hasAge) {
         this.hasAge = hasAge;
+    }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    @Override
+    public long getOwnerId() {
+        return ownerId;
+    }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    @Override
+    public void setOwnerId(long ownerId) {
+        this.ownerId = ownerId;
+        this.setDataProperty(new LongEntityData(DATA_SHOOTER_ID, ownerId));
+        this.setDataProperty(new LongEntityData(DATA_OWNER_EID, ownerId));
+        
+        this.shootingEntity = this.getLevel().getEntity(ownerId);
+    }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public Entity getShooter() {
+        this.shootingEntity = this.getLevel().getEntity(this.ownerId);
+        return this.shootingEntity;
+    }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public void setShooter(Entity shooter) {
+        this.shootingEntity = shooter;
+        this.setDataProperty(new LongEntityData(DATA_SHOOTER_ID, shooter.getId()));
+        this.setDataProperty(new LongEntityData(DATA_OWNER_EID, shooter.getId()));
+        
+        this.ownerId = shooter.getId();
     }
 }

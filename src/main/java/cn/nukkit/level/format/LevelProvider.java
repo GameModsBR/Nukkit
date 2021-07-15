@@ -1,5 +1,7 @@
 package cn.nukkit.level.format;
 
+import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
 import cn.nukkit.level.GameRules;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.format.generic.BaseFullChunk;
@@ -115,5 +117,17 @@ public interface LevelProvider {
     
     default int getMaximumLayer() {
         return 0;
+    }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    default long getLastEntityUniqueId() {
+        return 0;
+    }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    default void setLastEntityUniqueId(long lastEntityUniqueId) {
+        
     }
 }

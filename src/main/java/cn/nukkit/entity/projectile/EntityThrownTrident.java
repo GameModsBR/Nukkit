@@ -286,7 +286,7 @@ public class EntityThrownTrident extends EntityProjectile {
         
         if (this.noClip) {
             if (this.canReturnToShooter()) {
-                Entity shooter = this.shootingEntity;
+                Entity shooter = this.getShooter();
                 Vector3 vector3 = new Vector3(shooter.x - this.x, shooter.y + shooter.getEyeHeight() - this.y, shooter.z - this.z);
                 this.setPosition(new Vector3(this.x, this.y + vector3.y * 0.015 * ((double) loyaltyLevel), this.z));
                 this.setMotion(this.getMotion().multiply(0.95).add(vector3.multiply(loyaltyLevel * 0.05)));
@@ -338,10 +338,10 @@ public class EntityThrownTrident extends EntityProjectile {
         }
         
         EntityDamageEvent ev;
-        if (this.shootingEntity == null) {
+        if (this.getShooter() == null) {
             ev = new EntityDamageByEntityEvent(this, entity, DamageCause.PROJECTILE, damage);
         } else {
-            ev = new EntityDamageByChildEntityEvent(this.shootingEntity, this, entity, DamageCause.PROJECTILE, damage);
+            ev = new EntityDamageByChildEntityEvent(this.getShooter(), this, entity, DamageCause.PROJECTILE, damage);
         }
         entity.attack(ev);
         this.getLevel().addSound(this, Sound.ITEM_TRIDENT_HIT);
@@ -537,7 +537,7 @@ public class EntityThrownTrident extends EntityProjectile {
     @Since("1.4.0.0-PN")
     public void setTridentRope(boolean tridentRope) {
         if (tridentRope) {
-            this.setDataProperty(new LongEntityData(DATA_OWNER_EID, this.shootingEntity.getId()));
+            this.setDataProperty(new LongEntityData(DATA_OWNER_EID, this.getOwnerId()));
         } else {
             this.setDataProperty(new LongEntityData(DATA_OWNER_EID, -1));
         }
@@ -555,7 +555,7 @@ public class EntityThrownTrident extends EntityProjectile {
             return false;
         }
         
-        Entity shooter = this.shootingEntity;
+        Entity shooter = this.getShooter();
         if (shooter != null) {
             if (shooter.isAlive() && shooter instanceof Player) {
                 return !(((Player) shooter).isSpectator());
