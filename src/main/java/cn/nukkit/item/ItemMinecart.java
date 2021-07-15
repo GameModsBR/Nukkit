@@ -43,8 +43,8 @@ public class ItemMinecart extends Item {
             if (type.isAscending()) {
                 adjacent = 0.5D;
             }
-            EntityMinecartEmpty minecart = (EntityMinecartEmpty) Entity.createEntity("MinecartRideable",
-                    level.getChunk(target.getFloorX() >> 4, target.getFloorZ() >> 4), new CompoundTag("")
+            
+            CompoundTag nbt = new CompoundTag("")
                     .putList(new ListTag<>("Pos")
                             .add(new DoubleTag("", target.getX() + 0.5))
                             .add(new DoubleTag("", target.getY() + 0.0625D + adjacent))
@@ -55,10 +55,15 @@ public class ItemMinecart extends Item {
                             .add(new DoubleTag("", 0)))
                     .putList(new ListTag<>("Rotation")
                             .add(new FloatTag("", 0))
-                            .add(new FloatTag("", 0)))
-            );
-
-            if(minecart == null) {
+                            .add(new FloatTag("", 0)));
+            
+            if (this.hasCustomName()) {
+                nbt.putString("CustomName", this.getCustomName());
+            }
+            
+            EntityMinecartEmpty minecart = (EntityMinecartEmpty) Entity.createEntity("MinecartRideable", level.getChunk(target.getFloorX() >> 4, target.getFloorZ() >> 4), nbt);
+            
+            if (minecart == null) {
                 return false;
             }
 

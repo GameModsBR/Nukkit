@@ -18,7 +18,7 @@ import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.vehicle.VehicleMoveEvent;
 import cn.nukkit.event.vehicle.VehicleUpdateEvent;
 import cn.nukkit.item.Item;
-import cn.nukkit.item.ItemMinecart;
+import cn.nukkit.item.ItemID;
 import cn.nukkit.level.GameRule;
 import cn.nukkit.level.Location;
 import cn.nukkit.level.format.FullChunk;
@@ -237,7 +237,11 @@ public abstract class EntityMinecartAbstract extends EntityVehicle {
     }
 
     public void dropItem() {
-        level.dropItem(this, new ItemMinecart());
+        Item minecart = Item.get(ItemID.MINECART);
+        if (this.hasCustomName()) {
+            minecart.setCustomName(this.getNameTag());
+        }
+        level.dropItem(this, minecart);
     }
 
     @PowerNukkitDifference(info = "Fixes a dupe issue when attacking too quickly", since = "1.3.1.2-PN")
