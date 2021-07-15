@@ -1,9 +1,13 @@
 package cn.nukkit.level.biome.impl.extremehills;
 
 import cn.nukkit.block.BlockSapling;
+import cn.nukkit.blockstate.BlockState;
 import cn.nukkit.level.biome.type.GrassyBiome;
-import cn.nukkit.level.generator.populator.impl.PopulatorOreEmerald;
+import cn.nukkit.level.generator.populator.impl.PopulatorOreV2;
 import cn.nukkit.level.generator.populator.impl.PopulatorTree;
+import cn.nukkit.level.generator.object.ore.OreV2;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author DaPorkchop_ (Nukkit Project)
@@ -13,6 +17,7 @@ import cn.nukkit.level.generator.populator.impl.PopulatorTree;
  * steep mountains with flat areas between
  */
 public class ExtremeHillsBiome extends GrassyBiome {
+
     public ExtremeHillsBiome() {
         this(true);
     }
@@ -20,7 +25,7 @@ public class ExtremeHillsBiome extends GrassyBiome {
     public ExtremeHillsBiome(boolean tree) {
         super();
         
-        PopulatorOreEmerald oreEmerald = new PopulatorOreEmerald();
+        PopulatorOreV2 oreEmerald = new PopulatorOreV2(new OreV2(8, ImmutableList.of(new OreV2.ReplaceRule(BlockState.of(EMERALD_ORE), ImmutableList.of(BlockState.of(STONE))), new OreV2.ReplaceRule(BlockState.of(DEEPSLATE_EMERALD_ORE), ImmutableList.of(BlockState.of(DEEPSLATE))))), 1, 0, 16, 0, 32, 0, 16); // Emerald Ore               
         this.addPopulator(oreEmerald);
         
         if (tree) {

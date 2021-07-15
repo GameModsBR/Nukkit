@@ -114,9 +114,9 @@ public class Normal extends Generator {
         }
     }
 
-    private List<Populator> populators = Collections.emptyList();
+    /*private*/protected List<Populator> populators = Collections.emptyList();
     private List<Populator> generationPopulators = Collections.emptyList();
-    public static final int seaHeight = 64;
+    public static /*final*/ int seaHeight = 64;
     public NoiseGeneratorOctavesF scaleNoise;
     public NoiseGeneratorOctavesF depthNoise;
     private ChunkManager level;

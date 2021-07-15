@@ -43,6 +43,7 @@ import cn.nukkit.level.generator.Flat;
 import cn.nukkit.level.generator.Generator;
 import cn.nukkit.level.generator.Nether;
 import cn.nukkit.level.generator.Normal;
+import cn.nukkit.level.generator.PowerNukkitOverworld;
 import cn.nukkit.math.NukkitMath;
 import cn.nukkit.metadata.EntityMetadataStore;
 import cn.nukkit.metadata.LevelMetadataStore;
@@ -537,7 +538,7 @@ public class Server {
                 put("generator-settings", "");
                 put("level-name", "world");
                 put("level-seed", "");
-                put("level-type", "DEFAULT");
+                put("level-type", "PowerNukkitOverworld"); // Now we use PowerNukkit generator
                 put("allow-nether", true);
                 put("enable-query", true);
                 put("enable-rcon", false);
@@ -694,7 +695,8 @@ public class Server {
         Generator.addGenerator(Normal.class, "default", Generator.TYPE_INFINITE);
         Generator.addGenerator(Nether.class, "nether", Generator.TYPE_NETHER);
         //todo: add old generator and hell generator
-
+        Generator.addGenerator(PowerNukkitOverworld.class, "PowerNukkitOverworld", Generator.TYPE_INFINITE);
+        
         for (String name : this.getConfig("worlds", new HashMap<String, Object>()).keySet()) {
             if (!this.loadLevel(name)) {
                 long seed;

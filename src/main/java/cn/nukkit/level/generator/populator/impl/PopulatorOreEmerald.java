@@ -1,5 +1,6 @@
 package cn.nukkit.level.generator.populator.impl;
 
+import cn.nukkit.api.DeprecationDetails;
 import cn.nukkit.api.PowerNukkitOnly;
 import cn.nukkit.api.Since;
 import cn.nukkit.blockstate.BlockState;
@@ -14,6 +15,8 @@ import cn.nukkit.math.NukkitRandom;
  */
 @PowerNukkitOnly
 @Since("1.4.0.0-PN")
+@Deprecated
+@DeprecationDetails(since = "FUTURE", by = "PowerNukkit", reason = "PopulatorOreV2 is better", replaceWith = "PopulatorOreV2")
 public class PopulatorOreEmerald extends Populator {
 
     private static final BlockState STATE_STONE = BlockState.of(STONE);
