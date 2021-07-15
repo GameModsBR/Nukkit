@@ -1,6 +1,8 @@
 package cn.nukkit.event.player;
 
 import cn.nukkit.Player;
+import cn.nukkit.api.PowerNukkitDifference;
+import cn.nukkit.api.PowerNukkitOnly;
 import cn.nukkit.block.Block;
 import cn.nukkit.event.Cancellable;
 import cn.nukkit.event.HandlerList;
@@ -30,10 +32,12 @@ public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
 
     protected final Action action;
 
+    @PowerNukkitOnly protected boolean spectatorCancelled = false;
+
     public PlayerInteractEvent(Player player, Item item, Vector3 block, BlockFace face) {
         this(player, item, block, face, Action.RIGHT_CLICK_BLOCK);
     }
-
+    @PowerNukkitDifference(info = "Added Spectator cancelling due to issue #715", since = "1.4.0.0-PN")
     public PlayerInteractEvent(Player player, Item item, Vector3 block, BlockFace face, Action action) {
         if (block instanceof Block) {
             this.blockTouched = (Block) block;
@@ -47,6 +51,9 @@ public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
         this.item = item;
         this.blockFace = face;
         this.action = action;
+
+
+        if(player.getGamemode() == 3) { spectatorCancelled = true; setCancelled(true);}
     }
 
     public Action getAction() {
@@ -75,5 +82,12 @@ public class PlayerInteractEvent extends PlayerEvent implements Cancellable {
         LEFT_CLICK_AIR,
         RIGHT_CLICK_AIR,
         PHYSICAL
+    }
+
+
+
+    @PowerNukkitOnly
+    public boolean isSpectatorCancelled() {
+        return spectatorCancelled;
     }
 }
