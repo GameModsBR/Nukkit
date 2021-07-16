@@ -14,6 +14,7 @@ public class PlainsBiome extends GrassyBiome {
 
         this.setBaseHeight(0.125f);
         this.setHeightVariation(0.05f);
+        this.setTemperature(0.8f);
     }
 
     @Override

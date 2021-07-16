@@ -24,6 +24,8 @@ public class JungleBiome extends GrassyBiome {
         melon.setBaseAmount(-65);
         melon.setRandomAmount(70);
         this.addPopulator(melon);
+        
+        this.setTemperature(0.95f);
     }
 
     @Override

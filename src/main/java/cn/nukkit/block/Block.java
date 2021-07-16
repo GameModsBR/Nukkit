@@ -2202,4 +2202,21 @@ public abstract class Block extends Position implements Metadatable, Cloneable, 
         }
         return this.level.isBlockPowered(this.getLocation());
     }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public boolean canFillRain() {
+        return false;
+    }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public void fillRain() {
+    }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public boolean canSnowAccumulate() {
+        return !isTransparent() && isSolid();
+    }
 }

@@ -33,6 +33,8 @@ public class ForestBiome extends GrassyBiome {
             trees.setBaseAmount(3);
             this.addPopulator(trees);
         }
+        
+        this.setTemperature(0.7f);
     }
 
     @Override

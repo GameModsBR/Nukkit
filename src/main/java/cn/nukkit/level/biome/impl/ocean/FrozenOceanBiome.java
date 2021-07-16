@@ -13,6 +13,8 @@ public class FrozenOceanBiome extends OceanBiome {
 
         WaterIcePopulator ice = new WaterIcePopulator();
         this.addPopulator(ice);
+        
+        this.setTemperature(0.0f);
     }
 
     @Override

@@ -12,6 +12,7 @@ public class ColdBeachBiome extends SandyBiome {
 
         this.setBaseHeight(0f);
         this.setHeightVariation(0.025f);
+        this.setTemperature(0.05f);
     }
 
     @Since("1.4.0.0-PN")

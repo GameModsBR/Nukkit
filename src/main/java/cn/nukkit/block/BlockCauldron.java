@@ -14,6 +14,7 @@ import cn.nukkit.event.player.PlayerBucketEmptyEvent;
 import cn.nukkit.event.player.PlayerBucketFillEvent;
 import cn.nukkit.item.*;
 import cn.nukkit.level.Sound;
+import cn.nukkit.level.biome.Biome;
 import cn.nukkit.level.particle.SmokeParticle;
 import cn.nukkit.math.BlockFace;
 import cn.nukkit.nbt.tag.CompoundTag;
@@ -23,6 +24,7 @@ import cn.nukkit.utils.BlockColor;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author CreeperFace (Nukkit Project)
@@ -495,5 +497,24 @@ public class BlockCauldron extends BlockSolidMeta implements BlockEntityHolder<B
     @Override
     public int getLightFilter() {
         return 3;
+    }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    @Override
+    public boolean canFillRain() {
+        return true;
+    }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    @Override
+    public void fillRain() {
+        if (ThreadLocalRandom.current().nextInt(20) == 0 && !this.isFull()) { // 5%
+            if (Biome.getBiome(this.getLevel().getBiomeId(this.getFloorX(), this.getFloorZ())).getTemperatureAt(this.getX(), this.getY(), this.getZ()) >= 0.15f) { // Check temperature is not snowy temperature
+                this.setFillLevel(this.getFillLevel() + 1);
+                this.getLevel().setBlock(this, this, true);
+            }
+        }
     }
 }

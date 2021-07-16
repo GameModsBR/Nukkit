@@ -15,6 +15,7 @@ public class StoneBeachBiome extends CoveredBiome {
     public StoneBeachBiome() {
         this.setBaseHeight(0.1f);
         this.setHeightVariation(0.8f);
+        this.setTemperature(0.2f);
     }
 
     @RemovedFromNewRakNet

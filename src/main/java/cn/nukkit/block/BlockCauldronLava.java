@@ -3,6 +3,7 @@ package cn.nukkit.block;
 import cn.nukkit.Player;
 import cn.nukkit.Server;
 import cn.nukkit.api.PowerNukkitOnly;
+import cn.nukkit.api.Since;
 import cn.nukkit.blockentity.BlockEntity;
 import cn.nukkit.blockentity.BlockEntityCauldron;
 import cn.nukkit.entity.Entity;
@@ -157,5 +158,19 @@ public class BlockCauldronLava extends BlockCauldron {
     
         this.level.updateComparatorOutputLevel(this);
         return true;
+    }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    @Override
+    public boolean canFillRain() {
+        return false;
+    }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    @Override
+    public void fillRain() {
+        // Does Nothing
     }
 }

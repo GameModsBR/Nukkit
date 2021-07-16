@@ -32,6 +32,7 @@ public class ExtremeHillsBiome extends GrassyBiome {
 
         this.setBaseHeight(1f);
         this.setHeightVariation(0.5f);
+        this.setTemperature(0.2f);
     }
 
     @Override

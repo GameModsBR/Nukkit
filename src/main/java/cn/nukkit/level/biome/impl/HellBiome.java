@@ -5,6 +5,13 @@ import cn.nukkit.api.Since;
 import cn.nukkit.level.biome.Biome;
 
 public class HellBiome extends Biome {
+
+    @PowerNukkitOnly
+    @Since("FUTURE")
+    public HellBiome() {
+        this.setTemperature(2.0f);
+    }
+    
     @Override
     public String getName() {
         return "Hell";

@@ -21,6 +21,7 @@ public class IcePlainsBiome extends SnowyBiome {
 
         this.setBaseHeight(0.125f);
         this.setHeightVariation(0.05f);
+        this.setTemperature(0.0f);
     }
 
     public String getName() {

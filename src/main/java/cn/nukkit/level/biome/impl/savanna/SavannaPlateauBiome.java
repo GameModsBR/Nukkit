@@ -10,6 +10,7 @@ public class SavannaPlateauBiome extends SavannaBiome {
 
         this.setBaseHeight(1.5f);
         this.setHeightVariation(0.025f);
+        this.setTemperature(1.0f);
     }
 
     @Override

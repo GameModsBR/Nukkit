@@ -33,6 +33,7 @@ public class FlowerForestBiome extends ForestBiome {
         this.addPopulator(flower);
 
         this.setHeightVariation(0.4f);
+        this.setTemperature(0.7f);
     }
 
     @Override

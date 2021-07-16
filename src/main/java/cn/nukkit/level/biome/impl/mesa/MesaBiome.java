@@ -80,6 +80,7 @@ public class MesaBiome extends CoveredBiome {
         this.addPopulator(deadBush);
 
         this.setMoundHeight(17);
+        this.setTemperature(2.0f);
     }
 
     public void setMoundHeight(int height) {

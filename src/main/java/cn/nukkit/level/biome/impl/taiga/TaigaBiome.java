@@ -17,6 +17,7 @@ public class TaigaBiome extends GrassyBiome {
 
         this.setBaseHeight(0.2f);
         this.setHeightVariation(0.2f);
+        this.setTemperature(0.25f);
     }
 
     @Override

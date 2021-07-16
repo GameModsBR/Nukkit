@@ -43,6 +43,7 @@ public class SwampBiome extends GrassyBiome {
 
         this.setBaseHeight(-0.2f);
         this.setHeightVariation(0.1f);
+        this.setTemperature(0.8f);
     }
 
     @Override

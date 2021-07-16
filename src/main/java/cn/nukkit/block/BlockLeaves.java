@@ -288,4 +288,11 @@ public class BlockLeaves extends BlockTransparentMeta {
     public boolean sticksToPiston() {
         return false;
     }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    @Override
+    public boolean canSnowAccumulate() {
+        return true;
+    }
 }

@@ -20,6 +20,7 @@ public class SavannaBiome extends GrassyBiome {
 
         this.setBaseHeight(0.125f);
         this.setHeightVariation(0.05f);
+        this.setTemperature(1.2f);
     }
 
     @Override

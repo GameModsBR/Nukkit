@@ -14,6 +14,7 @@ public class MushroomIslandBiome extends GrassyBiome {
 
         this.setBaseHeight(0.2f);
         this.setHeightVariation(0.3f);
+        this.setTemperature(0.9f);
     }
 
     @Override

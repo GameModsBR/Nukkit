@@ -96,4 +96,10 @@ public class BlockIce extends BlockTransparent {
     public int getLightFilter() {
         return 2;
     }
+    
+    @PowerNukkitOnly
+    @Since("1.4.0.0-PN")
+    public boolean canSnowAccumulate() {
+        return false;
+    }
 }

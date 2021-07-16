@@ -15,6 +15,7 @@ public class BeachBiome extends SandyBiome {
 
         this.setBaseHeight(0f);
         this.setHeightVariation(0.025f);
+        this.setTemperature(0.8f);
     }
 
     @Override

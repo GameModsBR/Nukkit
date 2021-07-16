@@ -165,6 +165,9 @@ public class Level implements ChunkManager, Metadatable {
         randomTickBlocks[BlockID.WARPED_NYLIUM] = true;
         randomTickBlocks[BlockID.TWISTING_VINES] = true;
     }
+
+    private static final BlockState STATE_ICE = BlockState.of(BlockID.ICE);
+    private static final BlockState STATE_SNOW_LAYER = BlockState.of(BlockID.SNOW_LAYER);
     
     @PowerNukkitOnly
     @Since("1.4.0.0-PN")
@@ -1254,9 +1257,51 @@ public class Level implements ChunkManager, Metadatable {
                 for (Entity entity : chunk.getEntities().values()) {
                     entity.scheduleUpdate();
                 }
+                
                 int tickSpeed = gameRules.getInteger(GameRule.RANDOM_TICK_SPEED);
 
                 if (tickSpeed > 0) {
+                    for (int t = 0; t < tickSpeed; t++) {
+                        // TODO: Improve performance
+                        int lcg1 = this.getUpdateLCG();
+                        if ((lcg1 >>> 8 & 0x19) == 0) {
+                            int x1 = lcg1 & 0x0f;
+                            int z1 = lcg1 >>> 16 & 0x0f;
+                            int y1 = chunk.getHighestBlockAt(x1, z1, false);
+                            
+                            Biome biome = Biome.getBiome(chunk.getBiomeId(x1, z1));
+                            Block target = chunk.getBlockState(x1, y1, z1).getBlockRepairing(this, (chunkX << 4) + x1, y1, (chunkZ << 4) + z1);
+                            int targetId = chunk.getBlockId(x1, y1, z1);
+                            boolean isRaining = this.isRaining();
+                            
+                            if (biome.canFreeze((double) x1, (double) y1, (double) z1)) {
+                                if ((targetId == BlockID.WATER && target.getDamage() == 0) || targetId == BlockID.STILL_WATER) {
+                                    if (this.getBlockLightAt(x1, y1, z1) < 10) {
+                                        this.setBlockStateAt((chunkX << 4) + x1, y1, (chunkZ << 4) + z1, STATE_ICE);
+                                    }
+                                }
+                            }
+                            
+                            if (isRaining && biome.canSnow((double) x1, (double) y1 + 1, (double) z1)) {
+                                if (this.getBlockLightAt(x1, y1 + 1, z1) < 10) {
+                                    if (target.canSnowAccumulate()) {
+                                        this.setBlockStateAt((chunkX << 4) + x1, y1 + 1, (chunkZ << 4) + z1, STATE_SNOW_LAYER);
+                                    } else if (targetId == BlockID.SNOW_LAYER) {
+                                        if (targetId == BlockID.SNOW_LAYER) {
+                                            ((BlockSnowLayer) target).accumulateSnow(1, 2); // TODO: Check max snow height generation
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            if (biome.canRain() && isRaining) {
+                                if (target.canFillRain()) {
+                                    target.fillRain();
+                                }
+                            }
+                        }
+                    }
+                    
                     if (this.useSections) {
                         for (ChunkSection section : ((Chunk) chunk).getSections()) {
                             if (!(section instanceof EmptyChunkSection)) {

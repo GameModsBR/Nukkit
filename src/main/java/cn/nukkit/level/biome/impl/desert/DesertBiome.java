@@ -21,6 +21,7 @@ public class DesertBiome extends SandyBiome {
 
         this.setBaseHeight(0.125f);
         this.setHeightVariation(0.05f);
+        this.setTemperature(2.0f);
     }
 
     @Override

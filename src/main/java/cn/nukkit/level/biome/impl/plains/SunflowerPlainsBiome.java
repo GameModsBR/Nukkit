@@ -15,6 +15,8 @@ public class SunflowerPlainsBiome extends PlainsBiome {
         sunflower.setBaseAmount(8);
         sunflower.setRandomAmount(5);
         this.addPopulator(sunflower);
+        
+        this.setTemperature(0.8f);
     }
 
     @Override
